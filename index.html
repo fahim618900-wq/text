@@ -17,39 +17,51 @@
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/python/python.js"></script>
 
 <style>
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#f5f5f5;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f5f5;height:100vh;display:flex;flex-direction:column;}
 
-/* Header - চিকন এবং উন্নত */
+/* Header */
 header{
-    height:45px;
+    height:50px;
     display:flex;
     align-items:center;
-    justify-content: space-between;
-    padding:0 15px;
-    background:#f8f9fa;
-    border-bottom:1px solid #dee2e6;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding:0 8px;
+    background:#e0e0e0;
+    border-bottom:1px solid #ccc;
+    gap:5px;
+}
+.menu-btns{
+    display:flex;gap:5px;
+}
+button.action-btn{
+    display:flex;align-items:center;gap:3px;
+    padding:3px 6px;
+    border:none;border-radius:4px;background:#FFD700;color:#333;
+    font-weight:bold;cursor:pointer;user-select:none;font-size:13px;
+}
+button.action-btn span{user-select:none;}
+button.action-btn svg{width:18px;height:18px;fill:#333;}
+
+/* Editor */
+#editor{flex:1;max-height:50vh;}
+.CodeMirror{height:100%;font-size:15px;line-height:1.4;}
+.CodeMirror pre{margin:0;}
+
+/* লাইন কাটা যাবে */
+.CodeMirror {
+    line-height: 1.4;
+}
+.CodeMirror-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+/* Fullscreen overlay */
+#fullscreenOverlay{
+    display:none;
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:#fff;z-index:9999;
 }
-
-.app-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    margin-right: 10px;
-}
+#fullscreenOverlay iframe{width:100%;height:100%;border:none;}
 
 /* মেনু স্টাইল */
 .menu-container {
@@ -60,35 +72,35 @@ header{
 .menu-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
+    gap: 3px;
+    padding: 3px 6px;
     border: none;
     border-radius: 4px;
-    background: linear-gradient(135deg, #FFE066 0%, #FFD43B 100%);
+    background: #FFD700;
     color: #333;
-    font-weight: 500;
+    font-weight: bold;
     cursor: pointer;
+    user-select: none;
     font-size: 13px;
-    height: 32px;
-    transition: all 0.2s ease;
 }
 
-.menu-btn:hover {
-    background: linear-gradient(135deg, #FFD43B 0%, #FFC107 100%);
+.menu-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: #333;
 }
 
 .menu-dropdown {
     display: none;
     position: absolute;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
     top: 100%;
     left: 0;
-    background: white;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    min-width: 180px;
-    z-index: 1000;
     margin-top: 5px;
-    border: 1px solid #dee2e6;
 }
 
 .menu-dropdown.show {
@@ -96,226 +108,50 @@ header{
 }
 
 .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 15px;
+    color: #333;
+    padding: 8px 12px;
+    text-decoration: none;
+    display: block;
     border: none;
     background: none;
     width: 100%;
     text-align: left;
     cursor: pointer;
     font-size: 13px;
-    color: #333;
-    border-bottom: 1px solid #f1f1f1;
-    transition: background 0.2s;
-}
-
-.menu-item:last-child {
-    border-bottom: none;
 }
 
 .menu-item:hover {
-    background: #f8f9fa;
+    background-color: #f1f1f1;
 }
 
-.menu-item svg {
-    width: 16px;
-    height: 16px;
-    fill: #666;
-}
-
-/* একশন বাটন স্টাইল */
-.action-btns{
-    display:flex;
-    gap: 6px;
-}
-
-button.action-btn{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    padding:6px 12px;
-    border:none;
-    border-radius:4px;
-    background:linear-gradient(135deg, #FFE066 0%, #FFD43B 100%);
-    color:#333;
-    font-weight:500;
-    cursor:pointer;
-    user-select:none;
-    font-size:13px;
-    height:32px;
-    transition:all 0.2s ease;
-    box-shadow:0 1px 3px rgba(0,0,0,0.1);
-}
-
-button.action-btn:hover{
-    background:linear-gradient(135deg, #FFD43B 0%, #FFC107 100%);
-    transform:translateY(-1px);
-    box-shadow:0 2px 5px rgba(0,0,0,0.15);
-}
-
-button.action-btn:active{
-    transform:translateY(0);
-    box-shadow:0 1px 2px rgba(0,0,0,0.1);
-}
-
-button.action-btn span{
-    user-select:none;
-}
-
-button.action-btn svg{
-    width:16px;
-    height:16px;
-    fill:#333;
-}
-
-/* Editor */
-#editor{
-    flex:1;
-    max-height:calc(100vh - 45px);
-}
-
-.CodeMirror{
-    height:100%;
-    font-size:14px;
-    line-height:1.4;
-}
-
-/* লাইন কাটা যাবে - সেট করা আছে */
-.CodeMirror pre{
-    margin:0;
-}
-
-.CodeMirror-line {
-    padding: 0 4px !important;
-}
-
-.CodeMirror-scroll {
-    overflow-x: auto !important;
-    overflow-y: auto !important;
-}
-
-/* Fullscreen overlay */
-#fullscreenOverlay{
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:#fff;
-    z-index:9999;
-}
-
-#fullscreenOverlay iframe{
-    width:100%;
-    height:100%;
-    border:none;
-}
-
-.overlay-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 40px;
-    background: #f8f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0 15px;
-    border-bottom: 1px solid #dee2e6;
-    z-index: 10000;
-}
-
-.close-fullscreen {
-    padding: 5px 12px;
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-/* ডার্ক থিম */
-body.dark {
-    background: #1a1a1a;
-    color: #f0f0f0;
-}
-
-body.dark header {
-    background: #2d2d2d;
-    border-bottom-color: #404040;
-}
-
-body.dark .menu-btn,
-body.dark .action-btn {
-    background: linear-gradient(135deg, #E6B400 0%, #CC9900 100%);
-    color: #222;
-}
-
-body.dark .menu-dropdown {
-    background: #2d2d2d;
-    border-color: #404040;
-}
-
-body.dark .menu-item {
-    color: #f0f0f0;
-    border-bottom-color: #404040;
-}
-
-body.dark .menu-item:hover {
-    background: #3d3d3d;
-}
-
-body.dark .app-title {
-    color: #f0f0f0;
+.menu-divider {
+    height: 1px;
+    background-color: #ddd;
+    margin: 5px 0;
 }
 </style>
 </head>
 <body>
 
 <header>
-    <div class="header-left">
-        <div class="app-title">Code Editor</div>
+    <div class="menu-btns">
+        <!-- মেনু বাটন -->
         <div class="menu-container">
             <button class="menu-btn" onclick="toggleMenu()">
                 <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
                 <span>Menu</span>
             </button>
             <div class="menu-dropdown" id="menuDropdown">
-                <button class="menu-item" onclick="changeMode('htmlmixed')">
-                    <svg viewBox="0 0 24 24"><path d="M12 17.56l4.07-1.13.55-6.1H9.38L9.2 8.3h7.6l.2-1.99H7l.56 6.01h6.89l-.23 2.58-2.22.6-2.22-.6-.14-1.66h-2l.29 3.19L12 17.56M4.07 3h15.86L18.5 19.2 12 21l-6.5-1.8L4.07 3z"/></svg>
-                    <span>HTML Mode</span>
-                </button>
-                <button class="menu-item" onclick="changeMode('javascript')">
-                    <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3V3m4.73 15.04c.4.85 1.19 1.55 2.54 1.55 1.5 0 2.53-.8 2.53-2.55v-5.78h-1.7v5.74c0 .86-.35 1.08-.9 1.08-.58 0-.82-.4-1.09-.87l-1.38.83m5.98-.18c.5.98 1.51 1.73 3.09 1.73 1.6 0 2.8-.83 2.8-2.36 0-1.41-.81-2.04-2.25-2.66l-.42-.18c-.73-.31-1.04-.52-1.04-1.02 0-.41.31-.73.81-.73.48 0 .8.21 1.09.73l1.31-.87c-.55-.96-1.33-1.33-2.4-1.33-1.51 0-2.48.96-2.48 2.23 0 1.38.81 2.03 2.03 2.55l.42.18c.78.34 1.24.55 1.24 1.13 0 .48-.45.83-1.15.83-.83 0-1.31-.43-1.67-1.03l-1.38.8z"/></svg>
-                    <span>JavaScript Mode</span>
-                </button>
-                <button class="menu-item" onclick="changeMode('css')">
-                    <svg viewBox="0 0 24 24"><path d="M5 3l-.65 3.34h13.59L17.5 8.5H3.92l-.66 3.33h13.59l-.76 3.81-5.48 1.81-4.75-1.81.33-1.64H2.85l-.79 4 7.85 3 9.05-3 1.2-6.03.24-1.21L21.94 3H5z"/></svg>
-                    <span>CSS Mode</span>
-                </button>
-                <button class="menu-item" onclick="changeMode('python')">
-                    <svg viewBox="0 0 24 24"><path d="M9.5 12.5h4V11H9.5v1.5zm0-3h4V8H9.5v1.5zM19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z"/></svg>
-                    <span>Python Mode</span>
-                </button>
-                <div class="menu-item" style="border-top: 2px solid #dee2e6; margin-top: 5px;"></div>
-                <button class="menu-item" onclick="clearCode()">
-                    <svg viewBox="0 0 24 24"><path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"/></svg>
-                    <span>Clear Code</span>
-                </button>
-                <button class="menu-item" onclick="formatCode()">
-                    <svg viewBox="0 0 24 24"><path d="M7 15v-2h10v2H7m4-8H5v2h6V7m8 0h-6v2h6V7M7 11v-2h10v2H7z"/></svg>
-                    <span>Format Code</span>
-                </button>
+                <button class="menu-item" onclick="changeMode('htmlmixed')">HTML Mode</button>
+                <button class="menu-item" onclick="changeMode('javascript')">JavaScript Mode</button>
+                <button class="menu-item" onclick="changeMode('css')">CSS Mode</button>
+                <button class="menu-item" onclick="changeMode('python')">Python Mode</button>
+                <div class="menu-divider"></div>
+                <button class="menu-item" onclick="clearCode()">Clear Code</button>
+                <button class="menu-item" onclick="formatCode()">Format Code</button>
             </div>
         </div>
-    </div>
-    
-    <div class="action-btns">
+        
         <button class="action-btn" onclick="openFullScreen()">
             <svg viewBox="0 0 24 24"><path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/></svg>
             <span>Full Screen</span>
@@ -332,32 +168,14 @@ body.dark .app-title {
 </header>
 
 <textarea id="code"></textarea>
-<div id="fullscreenOverlay">
-    <div class="overlay-header">
-        <button class="close-fullscreen" onclick="closeFullScreen()">Close</button>
-    </div>
-    <iframe id="fullIframe"></iframe>
-</div>
+<div id="fullscreenOverlay"><iframe id="fullIframe"></iframe></div>
 
 <script>
-// Theme Management
-if(localStorage.getItem("theme")==="dark") {
-    document.body.classList.add("dark");
-    document.querySelector('link[href*="neo.css"]').href = "https://cdn.jsdelivr.net/npm/codemirror@5.65.14/theme/dracula.css";
-}
+// Theme
+if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
 function toggleTheme(){
-    const isDark = !document.body.classList.contains("dark");
     document.body.classList.toggle("dark");
-    
-    if(isDark) {
-        editor.setOption("theme", "dracula");
-        document.querySelector('link[href*="neo.css"]').href = "https://cdn.jsdelivr.net/npm/codemirror@5.65.14/theme/dracula.css";
-    } else {
-        editor.setOption("theme", "neo");
-        document.querySelector('link[href*="dracula.css"]').href = "https://cdn.jsdelivr.net/npm/codemirror@5.65.14/theme/neo.css";
-    }
-    
-    localStorage.setItem("theme", isDark ? "dark" : "light");
+    localStorage.setItem("theme", document.body.classList.contains("dark")?"dark":"light");
 }
 
 // CodeMirror setup - লাইন কাটা সক্ষম করা হয়েছে
@@ -365,75 +183,31 @@ const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
     mode: "htmlmixed",
     lineNumbers: true,
     theme: "neo",
-    tabSize: 2,
+    tabSize:2,
     viewportMargin: Infinity,
     lineWrapping: true, // লাইন কাটা সক্ষম
     lineHeight: 1.4,
     extraKeys: {
-        "Enter": function(cm) {
-            // শুধু নতুন লাইন এবং ইন্ডেন্ট
-            var cursor = cm.getCursor();
-            cm.replaceSelection("\n");
-            cm.indentLine(cursor.line + 1);
-        },
-        "Shift-Enter": function(cm) {
-            // Shift+Enter এ শুধু নতুন লাইন (ইন্ডেন্ট ছাড়া)
-            cm.replaceSelection("\n");
-        },
-        "Ctrl-/": function(cm) {
-            cm.toggleComment();
-        },
-        "Ctrl-S": function(cm) {
-            saveCode();
-            return false;
-        },
-        "Tab": function(cm) {
-            if (cm.somethingSelected()) {
-                cm.indentSelection("add");
-            } else {
-                cm.replaceSelection("  ", "end");
-            }
-        },
-        "Shift-Tab": function(cm) {
-            cm.indentSelection("subtract");
-        }
+        "Enter": "newlineAndIndent",
+        "Backspace": "delCharBefore"
     }
 });
 
 // Load saved code
-editor.setValue(localStorage.getItem("savedCode") || `<!DOCTYPE html>
-<html>
-<head>
-    <title>My Code</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Hello World!</h1>
-    <p>Start coding here...</p>
-    
-    <script>
-        console.log('Welcome to Code Editor');
-    <\/script>
-</body>
-</html>`);
+editor.setValue(localStorage.getItem("savedCode")||"");
 
 // Auto-save
-editor.on("change", () => {
+editor.on("change", ()=>{
     localStorage.setItem("savedCode", editor.getValue());
 });
 
-// Menu Functions
+// মেনু ফাংশন
 function toggleMenu() {
     const menu = document.getElementById('menuDropdown');
     menu.classList.toggle('show');
 }
 
-// Close menu when clicking outside
+// মেনু বাইরে ক্লিক করলে বন্ধ হবে
 document.addEventListener('click', function(event) {
     const menu = document.getElementById('menuDropdown');
     const menuBtn = document.querySelector('.menu-btn');
@@ -444,24 +218,13 @@ document.addEventListener('click', function(event) {
 });
 
 function changeMode(mode) {
-    let modeName = mode;
-    if (mode === 'htmlmixed') modeName = 'HTML';
-    if (mode === 'javascript') modeName = 'JavaScript';
-    if (mode === 'css') modeName = 'CSS';
-    if (mode === 'python') modeName = 'Python';
-    
     editor.setOption("mode", mode);
-    document.querySelector('.app-title').textContent = `${modeName} Editor`;
     document.getElementById('menuDropdown').classList.remove('show');
-    
-    // Show notification
-    showNotification(`Switched to ${modeName} mode`);
 }
 
 function clearCode() {
     if (confirm('Are you sure you want to clear all code?')) {
         editor.setValue('');
-        showNotification('Code cleared');
     }
     document.getElementById('menuDropdown').classList.remove('show');
 }
@@ -491,7 +254,6 @@ function formatCode() {
         editor.setValue(formatted);
     }
     
-    showNotification('Code formatted');
     document.getElementById('menuDropdown').classList.remove('show');
 }
 
@@ -501,15 +263,24 @@ function downloadCode(){
     const blob = new Blob([code], {type:"text/plain"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    const mode = editor.getOption("mode");
+    const lang = detectLanguage(code);
     let ext = "txt";
-    if(mode==="htmlmixed") ext="html";
-    if(mode==="css") ext="css";
-    if(mode==="javascript") ext="js";
-    if(mode==="python") ext="py";
-    a.download = `code.${ext}`;
+    if(lang==="html") ext="html";
+    if(lang==="css") ext="css";
+    if(lang==="js") ext="js";
+    if(lang==="python") ext="py";
+    a.download = "code."+ext;
     a.click();
-    showNotification('Code downloaded');
+}
+
+// Language detect
+function detectLanguage(code){
+    code = code.trim();
+    if(code.includes("<") && code.includes(">")) return "html";
+    if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
+    if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
+    if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
+    return "txt";
 }
 
 // Full Screen
@@ -520,61 +291,14 @@ function openFullScreen(){
     overlay.style.display = "block";
 }
 
-function closeFullScreen() {
-    document.getElementById("fullscreenOverlay").style.display = "none";
-}
-
-// Close full screen on ESC key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeFullScreen();
+// Close full screen on back button (mobile)
+window.addEventListener('popstate', function(){
+    const overlay = document.getElementById("fullscreenOverlay");
+    if(overlay.style.display==="block"){
+        overlay.style.display="none";
+        history.pushState(null,null,location.href);
     }
 });
-
-// Show notification
-function showNotification(message) {
-    // Remove existing notification
-    const existing = document.querySelector('.notification');
-    if (existing) existing.remove();
-    
-    // Create new notification
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 60px;
-        right: 20px;
-        background: #333;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 4px;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// Add animation styles
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
 
 // Push state
 history.pushState(null,null,location.href);
