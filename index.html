@@ -42,9 +42,17 @@ button.action-btn span{user-select:none;}
 button.action-btn svg{width:18px;height:18px;fill:#fff;}
 
 /* Editor */
-#editor{flex:1;max-height:50vh;padding-bottom:0.5in;}
+#editor{flex:1;max-height:50vh;}
 .CodeMirror{height:100%;font-size:15px;line-height:1.4;}
 .CodeMirror pre{margin:0;}
+
+/* Fullscreen overlay */
+#fullscreenOverlay{
+    display:none;
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:#fff;z-index:9999;
+}
+#fullscreenOverlay iframe{width:100%;height:100%;border:none;}
 </style>
 </head>
 <body>
@@ -55,22 +63,10 @@ button.action-btn svg{width:18px;height:18px;fill:#fff;}
             <svg viewBox="0 0 24 24"><path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/></svg>
             <span>Full Screen</span>
         </button>
-
         <button class="action-btn" onclick="downloadCode()">
             <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/></svg>
             <span>Download</span>
         </button>
-
-        <button class="action-btn" onclick="newProject()">
-            <svg viewBox="0 0 24 24"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6v-2z"/></svg>
-            <span>New Project</span>
-        </button>
-
-        <button class="action-btn" onclick="showProjects()">
-            <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
-            <span>Show Projects</span>
-        </button>
-
         <button class="action-btn" onclick="toggleTheme()">
             <svg viewBox="0 0 24 24"><path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 12,3Z"/></svg>
             <span>Theme</span>
@@ -79,6 +75,7 @@ button.action-btn svg{width:18px;height:18px;fill:#fff;}
 </header>
 
 <textarea id="code"></textarea>
+<div id="fullscreenOverlay"><iframe id="fullIframe"></iframe></div>
 
 <script>
 // Theme
@@ -138,15 +135,23 @@ function detectLanguage(code){
 
 // Full Screen
 function openFullScreen(){
-    localStorage.setItem("fullScreenCode", editor.getValue());
-    window.location.href = "full_screen.html";
+    const overlay = document.getElementById("fullscreenOverlay");
+    const iframe = document.getElementById("fullIframe");
+    iframe.srcdoc = editor.getValue();
+    overlay.style.display = "block";
 }
 
-// New Project placeholder
-function newProject(){alert("New Project feature coming soon!");}
+// Close full screen on back button (mobile)
+window.addEventListener('popstate', function(){
+    const overlay = document.getElementById("fullscreenOverlay");
+    if(overlay.style.display==="block"){
+        overlay.style.display="none";
+        history.pushState(null,null,location.href);
+    }
+});
 
-// Show Projects placeholder
-function showProjects(){alert("Show Projects feature coming soon!");}
+// Push state
+history.pushState(null,null,location.href);
 </script>
 
 </body>
