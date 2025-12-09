@@ -2,190 +2,209 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Live Code IDE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-body {
-  margin:0; font-family: Arial; display:flex; flex-direction:column; height:100vh;
-}
-#main { flex:1; display:flex; flex-direction:column; padding:10px; gap:10px; }
-
-.editor-container { display:flex; }
-.line-numbers {
-  user-select:none; padding:10px; background:#f0f0f0; color:#888; text-align:right; line-height:1.5;
-  overflow:hidden;
-}
-textarea {
-  flex:1; font-family: monospace; font-size:14px; padding:10px; border:1px solid #ccc; resize:none;
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#1e1e1e;
+    color:white;
+    display:flex;
+    height:100vh;
 }
 
-#output { width:100%; height:300px; border:1px solid #ccc; }
-#pyOutputContainer { position:relative; }
-#pyOutput {
-  font-family:monospace; font-size:16px; white-space:pre-wrap; padding:10px; border:1px solid #ccc;
-  height:300px; overflow:hidden;
+/* Header */
+header{
+    height:50px;
+    background:#111;
+    display:flex;
+    align-items:center;
+    padding:0 10px;
+    gap:10px;
+    border-bottom:1px solid #333;
 }
 
-#readMoreBtn {
-  display:none; cursor:pointer; background:none; border:none; color:#007bff; padding:5px 0;
+/* Menu button */
+#menuBtn svg, #fullscreenBtn svg, #downloadBtn svg{
+    width:24px;
+    height:24px;
+    fill:white;
+    cursor:pointer;
 }
 
-#fullscreenOverlay {
-  display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999;
-}
-#fullscreenOverlay iframe, #fullscreenOverlay pre {
-  width:100%; height:100%; border:none; padding:20px; box-sizing:border-box; font-family:monospace; font-size:16px;
+/* Side menu */
+#sideMenu{
+    width:0;
+    background:#151515;
+    overflow:hidden;
+    transition:0.3s;
+    padding-top:60px;
+    border-right:1px solid #333;
+    position:relative;
 }
 
-header { display:flex; gap:10px; padding:10px; align-items:center; background:#f5f5f5; border-bottom:1px solid #ccc; }
-header button { display:flex; align-items:center; gap:5px; padding:5px 10px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:4px; }
-header button:hover { background:#e0e0e0; }
+#sideMenu.open{ width:220px; }
+#sideMenu div{ padding:12px 20px; cursor:pointer; }
+#sideMenu div:hover{ background:#222; }
+
+/* Editor */
+#editorBox{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+}
+
+#editor{
+    flex:1;
+    width:100%;
+    background:#000;
+    color:#0f0;
+    border:none;
+    outline:none;
+    padding:10px;
+    font-family:monospace;
+    font-size:14px;
+    resize:none;
+    overflow-y:auto;
+}
+
+/* Read more box */
+#readMoreBox{
+    background:#000;
+    padding:10px;
+    color:#0f0;
+    font-family:monospace;
+    height:150px;
+    overflow:hidden;
+    position:relative;
+}
+
+#readMoreBtn{
+    position:absolute;
+    bottom:0;
+    width:100%;
+    text-align:center;
+    background:#111;
+    padding:5px 0;
+    cursor:pointer;
+    border-top:1px solid #333;
+}
+
+/* Output */
+#iframeBox{
+    width:50%;
+    border-left:1px solid #333;
+}
+iframe{
+    width:100%;
+    height:100%;
+    border:none;
+}
 </style>
 </head>
+
 <body>
 
-<header>
-  <button id="menuBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#007bff"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg> Menu
-  </button>
-  <button id="fullScreenBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#28a745"><path d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H7v5zm10 7h-3v2h5v-5h-2v3zm-3-10h3v3h2V5h-5v2z"/></svg> Full Screen
-  </button>
-  <button id="downloadBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffc107"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.67v4h4V9h3.67L12 2z"/></svg> Download
-  </button>
-</header>
-
-<div id="main">
-  <div class="editor-container">
-    <div class="line-numbers" id="lineNumbers">1</div>
-    <textarea id="code" placeholder="Write your code here..."></textarea>
-  </div>
-  
-  <!-- HTML/CSS/JS output -->
-  <iframe id="output"></iframe>
-  
-  <!-- Python / TXT output -->
-  <div id="pyOutputContainer">
-    <pre id="pyOutput" data-full=""></pre>
-    <button id="readMoreBtn">Read more...</button>
-  </div>
+<!-- Side Menu -->
+<div id="sideMenu">
+    <div onclick="newProject()">New Project</div>
+    <div onclick="showProjects()">Show Projects</div>
+    <div onclick="changeTheme()">Theme/Layout</div>
 </div>
 
-<div id="fullscreenOverlay"></div>
+<div style="flex:1; display:flex; flex-direction:column;">
 
-<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<!-- Header -->
+<header>
+    <!-- Menu Button -->
+    <div id="menuBtn">
+        <svg viewBox="0 0 24 24">
+            <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/>
+        </svg>
+    </div>
+
+    <!-- Full Screen -->
+    <div id="fullscreenBtn" onclick="openFullScreen()">
+        <svg viewBox="0 0 24 24">
+            <path d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H7v5zm10 9h-3v2h5v-5h-2v3zm0-14v3h2V3h-5v2h3z"/>
+        </svg>
+    </div>
+
+    <!-- Download -->
+    <div id="downloadBtn" onclick="downloadCode()">
+        <svg viewBox="0 0 24 24">
+            <path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/>
+        </svg>
+    </div>
+</header>
+
+<!-- Main Layout -->
+<div style="flex:1; display:flex;">
+
+    <!-- Editor Box -->
+    <div id="editorBox">
+        <textarea id="editor" placeholder="Write code here..."></textarea>
+    </div>
+
+    <!-- Output -->
+    <div id="iframeBox">
+        <iframe id="output"></iframe>
+    </div>
+
+</div>
+</div>
+
 <script>
-let pyodideReady=false, pyodide;
-async function loadPyodideAndPackages(){ pyodide=await loadPyodide(); pyodideReady=true; }
-loadPyodideAndPackages();
+// MENU OPEN/CLOSE
+const sideMenu = document.getElementById("sideMenu");
+document.getElementById("menuBtn").onclick = () => {
+    sideMenu.classList.toggle("open");
+};
 
-const codeBox=document.getElementById("code");
-const iframe=document.getElementById("output");
-const pyOutput=document.getElementById("pyOutput");
-const pyOutputContainer=document.getElementById("pyOutputContainer");
-const readMoreBtn=document.getElementById("readMoreBtn");
-const overlay=document.getElementById("fullscreenOverlay");
-const lineNumbers=document.getElementById("lineNumbers");
-
-const maxVisibleLines=5;
-let currentLines=maxVisibleLines;
-
-// Line numbers
-function updateLineNumbers(){
-  const lines=codeBox.value.split("\n").length;
-  let nums="";
-  for(let i=1;i<=lines;i++) nums+=i+"\n";
-  lineNumbers.innerText=nums;
-}
-
-// Language detection
-function detectLanguage(code){
-  code=code.trim();
-  if(code.startsWith("<") && code.includes(">")) return "html";
-  if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
-  if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
-  if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
-  return "txt";
-}
-
-// Update Python / TXT output with Read More
-function updateReadMoreOutput(content){
-  pyOutput.dataset.full=content;
-  const lines=content.split("\n");
-  currentLines=Math.min(maxVisibleLines, lines.length);
-  if(lines.length>maxVisibleLines){
-    pyOutput.innerText=lines.slice(0,currentLines).join("\n");
-    readMoreBtn.style.display="block";
-    readMoreBtn.innerText="Read more...";
-  } else {
-    pyOutput.innerText=content;
-    readMoreBtn.style.display="none";
-  }
-}
-
-// Read More click
-readMoreBtn.addEventListener("click", ()=>{
-  const allLines=pyOutput.dataset.full.split("\n");
-  if(currentLines<allLines.length){
-    currentLines=Math.min(currentLines+maxVisibleLines, allLines.length);
-    pyOutput.innerText=allLines.slice(0,currentLines).join("\n");
-    if(currentLines===allLines.length) readMoreBtn.innerText="Show less";
-  } else {
-    currentLines=maxVisibleLines;
-    pyOutput.innerText=allLines.slice(0,currentLines).join("\n");
-    readMoreBtn.innerText="Read more...";
-  }
+// click outside closes menu
+document.addEventListener("click", (e)=>{
+    if(!sideMenu.contains(e.target) && !menuBtn.contains(e.target)){
+        sideMenu.classList.remove("open");
+    }
 });
 
-// Run code
+// Auto-save code
+const editor = document.getElementById("editor");
+editor.value = localStorage.getItem("savedCode") || "";
+
+editor.addEventListener("input", ()=>{
+    localStorage.setItem("savedCode", editor.value);
+    runCode();
+});
+
+// Run code live
 function runCode(){
-  updateLineNumbers();
-  const code=codeBox.value;
-  const lang=detectLanguage(code);
-  
-  pyOutputContainer.style.display="block";
-  pyOutput.style.display="none";
-  iframe.style.display="block";
+    const iframe = document.getElementById("output");
+    iframe.srcdoc = editor.value;
+}
+runCode();
 
-  if(lang==="html"||lang==="css"||lang==="js"){
-    let content="";
-    if(lang==="html") content=code;
-    else if(lang==="css") content=`<style>${code}</style>`;
-    else if(lang==="js") content=`<script>${code}<\/script>`;
-    iframe.srcdoc=content;
-  } else if(lang==="python"){
-    iframe.style.display="none";
-    pyOutput.style.display="block";
-    if(pyodideReady){
-      pyodide.runPythonAsync(code).then(res=>{
-        updateReadMoreOutput(res!==undefined?res.toString():"");
-      }).catch(err=>{
-        updateReadMoreOutput("Error: "+err);
-      });
-    } else { updateReadMoreOutput("Python is loading..."); }
-  } else { // txt
-    iframe.style.display="none";
-    pyOutput.style.display="block";
-    updateReadMoreOutput(code);
-  }
+// Full Screen
+function openFullScreen(){
+    localStorage.setItem("fullScreenCode", editor.value);
+    window.location.href = "full_screen.html";
 }
 
-// Auto-run
-let autoRunTimeout;
-codeBox.addEventListener('input', ()=>{
-  clearTimeout(autoRunTimeout);
-  autoRunTimeout=setTimeout(runCode,300);
-});
+// Download Code
+function downloadCode(){
+    const blob = new Blob([editor.value], {type:"text/html"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "index.html";
+    a.click();
+}
 
-// Buttons functionality (placeholder)
-document.getElementById("fullScreenBtn").addEventListener("click", ()=>{ alert("Full Screen feature coming"); });
-document.getElementById("downloadBtn").addEventListener("click", ()=>{ alert("Download feature coming"); });
-document.getElementById("menuBtn").addEventListener("click", ()=>{ alert("Menu feature coming"); });
-
-// Initial run
-runCode();
-updateLineNumbers();
+// Menu Placeholder Functions
+function newProject(){ alert("New Project Coming..."); }
+function showProjects(){ alert("Projects Coming..."); }
+function changeTheme(){ alert("Themes Coming..."); }
 </script>
 
 </body>
