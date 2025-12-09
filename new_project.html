@@ -1,32 +1,149 @@
-<!-- new_project.html -->
-<script type="module">
-import { projects, showProjects } from './menu.html';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Create New Project</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-export function createNewProject() {
-  const pname = prompt("Enter project name:");
-  if (!pname) return;
-
-  let files = [];
-  let addMore = true;
-
-  while(addMore){
-    const fname = prompt("Enter file name (e.g., index.html, main.py):");
-    if (!fname) break;
-    const content = prompt(`Enter content for ${fname}:`, "");
-    files.push({ filename: fname, content: content || "" });
-    addMore = confirm("Add another file?");
-  }
-
-  if(files.length===0){
-    alert("No files added. Project not created.");
-    return;
-  }
-
-  projects.push({ name: pname, files: files });
-  alert(`Project "${pname}" created with ${files.length} file(s).`);
-  showProjects();
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#f5f5f5;
+    padding:20px;
 }
 
-// Optionally attach to menu button in menu.html
-// document.getElementById("newProjectBtn").addEventListener("click", createNewProject);
+.container{
+    max-width:420px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+    text-align:center;
+    margin-top:0;
+}
+
+label{
+    display:block;
+    margin:10px 0 5px;
+    font-size:15px;
+}
+
+input, select{
+    width:100%;
+    padding:10px;
+    font-size:16px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    box-sizing:border-box;
+    outline:none;
+}
+
+button{
+    width:100%;
+    margin-top:15px;
+    padding:12px;
+    background:black;
+    color:white;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Create New Project</h2>
+
+    <label>Project Name</label>
+    <input id="pname" type="text" placeholder="Enter project name">
+
+    <label>Select Language / File Type</label>
+    <select id="ptype">
+        <option value="html">HTML File</option>
+        <option value="css">CSS File</option>
+        <option value="js">JavaScript File</option>
+        <option value="python">Python File</option>
+        <option value="txt">Text File</option>
+        <option value="folder">Folder (Empty)</option>
+    </select>
+
+    <button onclick="createProject()">Create Project</button>
+</div>
+
+
+<script>
+function createProject(){
+    let name = document.getElementById("pname").value.trim();
+    let type = document.getElementById("ptype").value;
+
+    if(name === ""){
+        alert("Project name can't be empty!");
+        return;
+    }
+
+    let projects = JSON.parse(localStorage.getItem("projects") || "[]");
+
+    // Check unique name
+    if(projects.find(p => p.name === name)){
+        alert("Project name already exists!");
+        return;
+    }
+
+    let ext = "";
+    let defaultCode = "";
+
+    if(type === "html"){
+        ext = ".html";
+        defaultCode = "<!-- New HTML File -->\n";
+    }
+    if(type === "css"){
+        ext = ".css";
+        defaultCode = "/* New CSS File */\n";
+    }
+    if(type === "js"){
+        ext = ".js";
+        defaultCode = "// New JS File\n";
+    }
+    if(type === "python"){
+        ext = ".py";
+        defaultCode = "# New Python File\n";
+    }
+    if(type === "txt"){
+        ext = ".txt";
+        defaultCode = "";
+    }
+    if(type === "folder"){
+        ext = "";
+        defaultCode = "folder";
+    }
+
+    let projectData = {
+        name: name,
+        type: type,
+        extension: ext,
+        code: defaultCode,
+        files: []   // for folders
+    };
+
+    projects.push(projectData);
+    localStorage.setItem("projects", JSON.stringify(projects));
+
+    alert("Project Created!");
+    window.location.href = "show_project.html";
+}
 </script>
+
+</body>
+</html>
