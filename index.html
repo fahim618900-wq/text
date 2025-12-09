@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Code IDE</title>
+<link rel="stylesheet" href="assets/style.css"> <!-- Optional: external CSS -->
+</head>
+<body>
+
+<header>
+  <!-- Menu button -->
+  <button id="menuBtn">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#000">
+      <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+    </svg> Menu
+  </button>
+
+  <!-- Full Screen -->
+  <button id="fullScreenBtn">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#000">
+      <path d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H7v5zm10 7h-3v2h5v-5h-2v3zm-3-10h3v3h2V5h-5v2z"/>
+    </svg> Full Screen
+  </button>
+
+  <!-- Download -->
+  <button id="downloadBtn">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#000">
+      <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.67v4h4V9h3.67L12 2z"/>
+    </svg> Download
+  </button>
+</header>
+
+<!-- Main editor area -->
+<div id="main">
+  <textarea id="code" placeholder="Write your code here..."></textarea>
+  <iframe id="output"></iframe>
+  <pre id="pyOutput" style="display:none"></pre>
+</div>
+
+<!-- Full screen overlay -->
+<div id="fullscreenOverlay"></div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="menu.html" type="module"></script>
+<script src="full_screen.html" type="module"></script>
+<script src="download.html" type="module"></script>
+<script src="new_project.html" type="module"></script>
+<script src="show_project.html" type="module"></script>
+<script src="theme.html" type="module"></script>
+<script>
+  // Placeholder: code auto-run
+  const codeBox = document.getElementById('code');
+  const iframe = document.getElementById('output');
+  const pyOutput = document.getElementById('pyOutput');
+
+  async function loadPyodideAndPackages() {
+    window.pyodide = await loadPyodide();
+  }
+  loadPyodideAndPackages();
+
+  function runCode() {
+    const code = codeBox.value.trim();
+    pyOutput.style.display="none"; iframe.style.display="block";
+    if(code.startsWith("<") && code.includes(">")) iframe.srcdoc = code;
+    else if(code.includes("print") || code.includes("def")) {
+      iframe.style.display="none"; pyOutput.style.display="block";
+      if(window.pyodide){
+        window.pyodide.runPythonAsync(code).then(res=>{
+          pyOutput.innerText = res!==undefined?res:"";
+        }).catch(err=>{ pyOutput.innerText="Error: "+err; });
+      } else pyOutput.innerText="Python loading...";
+    } else iframe.srcdoc = `<pre>${code.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>`;
+  }
+
+  codeBox.addEventListener('input', ()=>{ runCode(); });
+</script>
+
+</body>
+</html>
