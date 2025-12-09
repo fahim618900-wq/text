@@ -11,13 +11,25 @@ body {
 #main { flex:1; display:flex; flex-direction:column; padding:10px; gap:10px; }
 
 .editor-container { display:flex; }
-.line-numbers { user-select:none; padding:10px; background:#f0f0f0; color:#888; text-align:right; line-height:1.5; }
+.line-numbers {
+  user-select:none; padding:10px; background:#f0f0f0; color:#888; text-align:right; line-height:1.5;
+  overflow:hidden;
+}
 textarea {
   flex:1; font-family: monospace; font-size:14px; padding:10px; border:1px solid #ccc; resize:none;
 }
 
 #output { width:100%; height:300px; border:1px solid #ccc; }
-#pyOutput { font-family:monospace; font-size:16px; white-space:pre-wrap; padding:10px; border:1px solid #ccc; height:300px; overflow:auto; display:none; }
+#pyOutputContainer { position:relative; }
+#pyOutput {
+  font-family:monospace; font-size:16px; white-space:pre-wrap; padding:10px; border:1px solid #ccc;
+  height:300px; overflow:hidden;
+}
+
+#readMoreBtn {
+  display:none; cursor:pointer; background:none; border:none; color:#007bff; padding:5px 0;
+}
+
 #fullscreenOverlay {
   display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999;
 }
@@ -28,7 +40,6 @@ textarea {
 header { display:flex; gap:10px; padding:10px; align-items:center; background:#f5f5f5; border-bottom:1px solid #ccc; }
 header button { display:flex; align-items:center; gap:5px; padding:5px 10px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:4px; }
 header button:hover { background:#e0e0e0; }
-
 </style>
 </head>
 <body>
@@ -50,8 +61,15 @@ header button:hover { background:#e0e0e0; }
     <div class="line-numbers" id="lineNumbers">1</div>
     <textarea id="code" placeholder="Write your code here..."></textarea>
   </div>
+  
+  <!-- HTML/CSS/JS output -->
   <iframe id="output"></iframe>
-  <pre id="pyOutput"></pre>
+  
+  <!-- Python / TXT output -->
+  <div id="pyOutputContainer">
+    <pre id="pyOutput" data-full=""></pre>
+    <button id="readMoreBtn">Read more...</button>
+  </div>
 </div>
 
 <div id="fullscreenOverlay"></div>
@@ -65,18 +83,23 @@ loadPyodideAndPackages();
 const codeBox=document.getElementById("code");
 const iframe=document.getElementById("output");
 const pyOutput=document.getElementById("pyOutput");
+const pyOutputContainer=document.getElementById("pyOutputContainer");
+const readMoreBtn=document.getElementById("readMoreBtn");
 const overlay=document.getElementById("fullscreenOverlay");
 const lineNumbers=document.getElementById("lineNumbers");
 
-// Update line numbers
+const maxVisibleLines=5;
+let currentLines=maxVisibleLines;
+
+// Line numbers
 function updateLineNumbers(){
-  const lines = codeBox.value.split("\n").length;
+  const lines=codeBox.value.split("\n").length;
   let nums="";
   for(let i=1;i<=lines;i++) nums+=i+"\n";
   lineNumbers.innerText=nums;
 }
 
-// Detect language
+// Language detection
 function detectLanguage(code){
   code=code.trim();
   if(code.startsWith("<") && code.includes(">")) return "html";
@@ -86,12 +109,44 @@ function detectLanguage(code){
   return "txt";
 }
 
+// Update Python / TXT output with Read More
+function updateReadMoreOutput(content){
+  pyOutput.dataset.full=content;
+  const lines=content.split("\n");
+  currentLines=Math.min(maxVisibleLines, lines.length);
+  if(lines.length>maxVisibleLines){
+    pyOutput.innerText=lines.slice(0,currentLines).join("\n");
+    readMoreBtn.style.display="block";
+    readMoreBtn.innerText="Read more...";
+  } else {
+    pyOutput.innerText=content;
+    readMoreBtn.style.display="none";
+  }
+}
+
+// Read More click
+readMoreBtn.addEventListener("click", ()=>{
+  const allLines=pyOutput.dataset.full.split("\n");
+  if(currentLines<allLines.length){
+    currentLines=Math.min(currentLines+maxVisibleLines, allLines.length);
+    pyOutput.innerText=allLines.slice(0,currentLines).join("\n");
+    if(currentLines===allLines.length) readMoreBtn.innerText="Show less";
+  } else {
+    currentLines=maxVisibleLines;
+    pyOutput.innerText=allLines.slice(0,currentLines).join("\n");
+    readMoreBtn.innerText="Read more...";
+  }
+});
+
 // Run code
 function runCode(){
   updateLineNumbers();
   const code=codeBox.value;
   const lang=detectLanguage(code);
-  pyOutput.style.display="none"; iframe.style.display="block";
+  
+  pyOutputContainer.style.display="block";
+  pyOutput.style.display="none";
+  iframe.style.display="block";
 
   if(lang==="html"||lang==="css"||lang==="js"){
     let content="";
@@ -100,25 +155,30 @@ function runCode(){
     else if(lang==="js") content=`<script>${code}<\/script>`;
     iframe.srcdoc=content;
   } else if(lang==="python"){
-    iframe.style.display="none"; pyOutput.style.display="block";
+    iframe.style.display="none";
+    pyOutput.style.display="block";
     if(pyodideReady){
       pyodide.runPythonAsync(code).then(res=>{
-        pyOutput.innerText=res!==undefined?res:"";
-      }).catch(err=>{ pyOutput.innerText="Error: "+err; });
-    } else { pyOutput.innerText="Python is loading..."; }
+        updateReadMoreOutput(res!==undefined?res.toString():"");
+      }).catch(err=>{
+        updateReadMoreOutput("Error: "+err);
+      });
+    } else { updateReadMoreOutput("Python is loading..."); }
   } else { // txt
-    iframe.srcdoc=`<pre>${code.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>`;
+    iframe.style.display="none";
+    pyOutput.style.display="block";
+    updateReadMoreOutput(code);
   }
 }
 
-// Auto-run with debounce
+// Auto-run
 let autoRunTimeout;
 codeBox.addEventListener('input', ()=>{
   clearTimeout(autoRunTimeout);
   autoRunTimeout=setTimeout(runCode,300);
 });
 
-// Buttons functionality
+// Buttons functionality (placeholder)
 document.getElementById("fullScreenBtn").addEventListener("click", ()=>{ alert("Full Screen feature coming"); });
 document.getElementById("downloadBtn").addEventListener("click", ()=>{ alert("Download feature coming"); });
 document.getElementById("menuBtn").addEventListener("click", ()=>{ alert("Menu feature coming"); });
