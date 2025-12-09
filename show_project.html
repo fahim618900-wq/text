@@ -1,0 +1,96 @@
+<!-- show_project.html -->
+<script type="module">
+import { projects } from './menu.html';
+
+export function showProjectFiles() {
+  const mainDiv = document.getElementById("main");
+  let projListDiv = document.getElementById("projectListDiv");
+
+  if(!projListDiv){
+    projListDiv = document.createElement("div");
+    projListDiv.id = "projectListDiv";
+    projListDiv.style.borderTop = "1px solid #ccc";
+    projListDiv.style.marginTop = "5px";
+    projListDiv.style.maxHeight = "300px";
+    projListDiv.style.overflow = "auto";
+    mainDiv.appendChild(projListDiv);
+  }
+
+  projListDiv.innerHTML = "";
+
+  if(projects.length===0){
+    projListDiv.innerHTML = "<i>No projects</i>";
+    return;
+  }
+
+  projects.forEach((pIdx,p)=>{
+    const projDiv = document.createElement("div");
+    projDiv.style.borderBottom = "1px solid #eee";
+    projDiv.style.padding = "5px 10px";
+
+    const title = document.createElement("strong");
+    title.innerText = p.name;
+    title.style.cursor = "pointer";
+    title.onclick = ()=>toggleFiles(pIdx);
+    projDiv.appendChild(title);
+
+    const delProj = document.createElement("button");
+    delProj.innerText = "Delete Project";
+    delProj.style.marginLeft="10px";
+    delProj.onclick = (e)=>{
+      e.stopPropagation();
+      if(confirm("Delete project?")){
+        projects.splice(pIdx,1);
+        showProjectFiles();
+      }
+    };
+    projDiv.appendChild(delProj);
+
+    const fileDiv = document.createElement("div");
+    fileDiv.id = `fileList_${pIdx}`;
+    fileDiv.style.display="none";
+    fileDiv.style.marginTop="5px";
+    fileDiv.style.paddingLeft="10px";
+
+    p.files.forEach((fIdx,f)=>{
+      const fBtn = document.createElement("div");
+      fBtn.style.display="flex";
+      fBtn.style.justifyContent="space-between";
+      fBtn.style.alignItems="center";
+      fBtn.style.padding="2px 5px";
+
+      const span = document.createElement("span");
+      span.innerText = f.filename;
+      span.style.cursor="pointer";
+      span.onclick = ()=>{
+        document.getElementById("code").value = f.content;
+        document.getElementById("code").dispatchEvent(new Event("input"));
+      };
+
+      const delFile = document.createElement("button");
+      delFile.innerText="Delete";
+      delFile.style.padding="2px 5px";
+      delFile.style.fontSize="12px";
+      delFile.onclick = (e)=>{
+        e.stopPropagation();
+        if(confirm("Delete file?")){
+          p.files.splice(fIdx,1);
+          showProjectFiles();
+        }
+      };
+
+      fBtn.appendChild(span);
+      fBtn.appendChild(delFile);
+      fileDiv.appendChild(fBtn);
+    });
+
+    projDiv.appendChild(fileDiv);
+    projListDiv.appendChild(projDiv);
+  });
+
+  function toggleFiles(idx){
+    const fd = document.getElementById(`fileList_${idx}`);
+    fd.style.display = fd.style.display==="none"?"block":"none";
+  }
+}
+</script>
