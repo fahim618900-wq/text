@@ -4,77 +4,120 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Live Code IDE</title>
-<link rel="stylesheet" href="assets/style.css"> <!-- Optional: external CSS -->
+<style>
+  body { margin:0; font-family: Arial; display:flex; flex-direction:column; height:100vh; }
+  #main { flex:1; display:flex; flex-direction:column; padding:10px; gap:10px; }
+  textarea { width:100%; flex:1; font-family: monospace; font-size:14px; padding:10px; border:1px solid #ccc; resize:none; }
+  #output { width:100%; height:300px; border:1px solid #ccc; }
+  #pyOutput { font-family:monospace; font-size:16px; white-space:pre-wrap; padding:10px; border:1px solid #ccc; height:300px; overflow:auto; display:none; }
+  #fullscreenOverlay {
+    display:none;
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background:white; z-index:9999; padding:0; margin:0; overflow:auto;
+  }
+  #fullscreenOverlay iframe, #fullscreenOverlay pre {
+    width:100%; height:100%; border:none;
+    padding:20px; box-sizing:border-box; font-family:monospace; font-size:16px;
+  }
+  header { display:flex; gap:10px; padding:10px; align-items:center; background:#f5f5f5; border-bottom:1px solid #ccc; }
+  header button { display:flex; align-items:center; gap:5px; padding:5px 10px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:4px; }
+  header button:hover { background:#e0e0e0; }
+</style>
 </head>
 <body>
 
 <header>
-  <!-- Menu button -->
+  <!-- Menu -->
   <button id="menuBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#000">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#007bff">
       <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
     </svg> Menu
   </button>
-
   <!-- Full Screen -->
   <button id="fullScreenBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#000">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#28a745">
       <path d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H7v5zm10 7h-3v2h5v-5h-2v3zm-3-10h3v3h2V5h-5v2z"/>
     </svg> Full Screen
   </button>
-
   <!-- Download -->
   <button id="downloadBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#000">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffc107">
       <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.67v4h4V9h3.67L12 2z"/>
     </svg> Download
   </button>
 </header>
 
-<!-- Main editor area -->
 <div id="main">
   <textarea id="code" placeholder="Write your code here..."></textarea>
   <iframe id="output"></iframe>
-  <pre id="pyOutput" style="display:none"></pre>
+  <pre id="pyOutput"></pre>
 </div>
 
-<!-- Full screen overlay -->
 <div id="fullscreenOverlay"></div>
 
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-<script src="menu.html" type="module"></script>
-<script src="full_screen.html" type="module"></script>
-<script src="download.html" type="module"></script>
-<script src="new_project.html" type="module"></script>
-<script src="show_project.html" type="module"></script>
-<script src="theme.html" type="module"></script>
-<script>
-  // Placeholder: code auto-run
-  const codeBox = document.getElementById('code');
-  const iframe = document.getElementById('output');
-  const pyOutput = document.getElementById('pyOutput');
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.11.0/jszip.min.js"></script>
+<script type="module">
+// Import menu and theme
+import './menu.html';
+import './download.html';
+import './full_screen.html';
+import './new_project.html';
+import './show_project.html';
+import './theme.html';
 
-  async function loadPyodideAndPackages() {
-    window.pyodide = await loadPyodide();
+let pyodideReady=false, pyodide;
+async function loadPyodideAndPackages(){ pyodide=await loadPyodide(); pyodideReady=true; }
+loadPyodideAndPackages();
+
+const codeBox=document.getElementById("code");
+const iframe=document.getElementById("output");
+const pyOutput=document.getElementById("pyOutput");
+const overlay=document.getElementById("fullscreenOverlay");
+
+// Detect language
+function detectLanguage(code){
+  code=code.trim();
+  if(code.startsWith("<") && code.includes(">")) return "html";
+  if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
+  if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
+  if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
+  return "txt";
+}
+
+// Run code
+function runCode(){
+  const code=codeBox.value;
+  const lang=detectLanguage(code);
+  pyOutput.style.display="none"; iframe.style.display="block";
+
+  if(lang==="html"||lang==="css"||lang==="js"){
+    let content="";
+    if(lang==="html") content=code;
+    else if(lang==="css") content=`<style>${code}</style>`;
+    else if(lang==="js") content=`<script>${code}<\/script>`;
+    iframe.srcdoc=content;
+  } else if(lang==="python"){
+    iframe.style.display="none"; pyOutput.style.display="block";
+    if(pyodideReady){
+      pyodide.runPythonAsync(code).then(res=>{
+        pyOutput.innerText=res!==undefined?res:"";
+      }).catch(err=>{ pyOutput.innerText="Error: "+err; });
+    } else { pyOutput.innerText="Python is loading..."; }
+  } else { // txt
+    iframe.srcdoc=`<pre>${code.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>`;
   }
-  loadPyodideAndPackages();
+}
 
-  function runCode() {
-    const code = codeBox.value.trim();
-    pyOutput.style.display="none"; iframe.style.display="block";
-    if(code.startsWith("<") && code.includes(">")) iframe.srcdoc = code;
-    else if(code.includes("print") || code.includes("def")) {
-      iframe.style.display="none"; pyOutput.style.display="block";
-      if(window.pyodide){
-        window.pyodide.runPythonAsync(code).then(res=>{
-          pyOutput.innerText = res!==undefined?res:"";
-        }).catch(err=>{ pyOutput.innerText="Error: "+err; });
-      } else pyOutput.innerText="Python loading...";
-    } else iframe.srcdoc = `<pre>${code.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>`;
-  }
+// Auto-run
+let autoRunTimeout;
+codeBox.addEventListener('input', ()=>{
+  clearTimeout(autoRunTimeout);
+  autoRunTimeout=setTimeout(runCode,500);
+});
 
-  codeBox.addEventListener('input', ()=>{ runCode(); });
+// Initial run
+runCode();
 </script>
 
 </body>
