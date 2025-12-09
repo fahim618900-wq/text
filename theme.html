@@ -1,0 +1,54 @@
+<!-- theme.html -->
+<script type="module">
+const themeBtn = document.querySelector("button:contains('Theme + Layout')") || document.getElementById("themeBtn");
+
+// Theme toggle
+themeBtn.addEventListener("click", ()=>{
+  document.body.classList.toggle("dark-theme");
+  // Save preference in localStorage
+  if(document.body.classList.contains("dark-theme")){
+    localStorage.setItem("theme","dark");
+  } else {
+    localStorage.setItem("theme","light");
+  }
+});
+
+// Load saved theme on page load
+window.addEventListener("DOMContentLoaded", ()=>{
+  const savedTheme = localStorage.getItem("theme");
+  if(savedTheme==="dark") document.body.classList.add("dark-theme");
+});
+
+// Optional: layout change (horizontal/vertical)
+export function toggleLayout() {
+  const main = document.getElementById("main");
+  main.classList.toggle("vertical-layout"); // define CSS
+}
+
+</script>
+
+<style>
+/* Dark Theme */
+body.dark-theme {
+  background:#121212;
+  color:#e0e0e0;
+}
+body.dark-theme textarea,
+body.dark-theme iframe,
+body.dark-theme pre {
+  background:#1e1e1e;
+  color:#e0e0e0;
+  border:1px solid #333;
+}
+
+/* Optional vertical layout */
+#main.vertical-layout {
+  display:flex;
+  flex-direction:column;
+}
+#main.vertical-layout textarea,
+#main.vertical-layout iframe,
+#main.vertical-layout pre {
+  flex:1;
+}
+</style>
