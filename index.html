@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Live Code IDE</title>
+<title>Live Code IDE - Editor Only</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- CodeMirror -->
@@ -69,14 +69,7 @@ header span{
 
 /* Editor */
 #editor{
-    height:50vh;
-}
-
-/* Preview */
-#iframeOutput{
-    width:100%;
-    height:50vh;
-    border:none;
+    flex:1;
 }
 </style>
 </head>
@@ -107,9 +100,6 @@ header span{
 <!-- Editor -->
 <textarea id="code"></textarea>
 
-<!-- Preview -->
-<iframe id="iframeOutput"></iframe>
-
 <script>
 // THEME
 if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
@@ -130,11 +120,10 @@ const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
 // Load saved code
 editor.setValue(localStorage.getItem("savedCode")||"");
 
-// Auto-run and save
+// Auto-save only
 editor.on("change", ()=>{
     const code = editor.getValue();
     localStorage.setItem("savedCode", code);
-    document.getElementById("iframeOutput").srcdoc = code;
 });
 
 // Download
