@@ -5,50 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Live Code IDE</title>
 <style>
-  body { margin:0; font-family: Arial; display:flex; flex-direction:column; height:100vh; }
-  #main { flex:1; display:flex; flex-direction:column; padding:10px; gap:10px; }
-  textarea { width:100%; flex:1; font-family: monospace; font-size:14px; padding:10px; border:1px solid #ccc; resize:none; }
-  #output { width:100%; height:300px; border:1px solid #ccc; }
-  #pyOutput { font-family:monospace; font-size:16px; white-space:pre-wrap; padding:10px; border:1px solid #ccc; height:300px; overflow:auto; display:none; }
-  #fullscreenOverlay {
-    display:none;
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background:white; z-index:9999; padding:0; margin:0; overflow:auto;
-  }
-  #fullscreenOverlay iframe, #fullscreenOverlay pre {
-    width:100%; height:100%; border:none;
-    padding:20px; box-sizing:border-box; font-family:monospace; font-size:16px;
-  }
-  header { display:flex; gap:10px; padding:10px; align-items:center; background:#f5f5f5; border-bottom:1px solid #ccc; }
-  header button { display:flex; align-items:center; gap:5px; padding:5px 10px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:4px; }
-  header button:hover { background:#e0e0e0; }
+body {
+  margin:0; font-family: Arial; display:flex; flex-direction:column; height:100vh;
+}
+#main { flex:1; display:flex; flex-direction:column; padding:10px; gap:10px; }
+
+.editor-container { display:flex; }
+.line-numbers { user-select:none; padding:10px; background:#f0f0f0; color:#888; text-align:right; line-height:1.5; }
+textarea {
+  flex:1; font-family: monospace; font-size:14px; padding:10px; border:1px solid #ccc; resize:none;
+}
+
+#output { width:100%; height:300px; border:1px solid #ccc; }
+#pyOutput { font-family:monospace; font-size:16px; white-space:pre-wrap; padding:10px; border:1px solid #ccc; height:300px; overflow:auto; display:none; }
+#fullscreenOverlay {
+  display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999;
+}
+#fullscreenOverlay iframe, #fullscreenOverlay pre {
+  width:100%; height:100%; border:none; padding:20px; box-sizing:border-box; font-family:monospace; font-size:16px;
+}
+
+header { display:flex; gap:10px; padding:10px; align-items:center; background:#f5f5f5; border-bottom:1px solid #ccc; }
+header button { display:flex; align-items:center; gap:5px; padding:5px 10px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:4px; }
+header button:hover { background:#e0e0e0; }
+
 </style>
 </head>
 <body>
 
 <header>
-  <!-- Menu -->
   <button id="menuBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#007bff">
-      <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
-    </svg> Menu
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#007bff"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg> Menu
   </button>
-  <!-- Full Screen -->
   <button id="fullScreenBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#28a745">
-      <path d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H7v5zm10 7h-3v2h5v-5h-2v3zm-3-10h3v3h2V5h-5v2z"/>
-    </svg> Full Screen
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#28a745"><path d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H7v5zm10 7h-3v2h5v-5h-2v3zm-3-10h3v3h2V5h-5v2z"/></svg> Full Screen
   </button>
-  <!-- Download -->
   <button id="downloadBtn">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffc107">
-      <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.67v4h4V9h3.67L12 2z"/>
-    </svg> Download
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffc107"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.67v4h4V9h3.67L12 2z"/></svg> Download
   </button>
 </header>
 
 <div id="main">
-  <textarea id="code" placeholder="Write your code here..."></textarea>
+  <div class="editor-container">
+    <div class="line-numbers" id="lineNumbers">1</div>
+    <textarea id="code" placeholder="Write your code here..."></textarea>
+  </div>
   <iframe id="output"></iframe>
   <pre id="pyOutput"></pre>
 </div>
@@ -56,16 +57,7 @@
 <div id="fullscreenOverlay"></div>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.11.0/jszip.min.js"></script>
-<script type="module">
-// Import menu and theme
-import './menu.html';
-import './download.html';
-import './full_screen.html';
-import './new_project.html';
-import './show_project.html';
-import './theme.html';
-
+<script>
 let pyodideReady=false, pyodide;
 async function loadPyodideAndPackages(){ pyodide=await loadPyodide(); pyodideReady=true; }
 loadPyodideAndPackages();
@@ -74,6 +66,15 @@ const codeBox=document.getElementById("code");
 const iframe=document.getElementById("output");
 const pyOutput=document.getElementById("pyOutput");
 const overlay=document.getElementById("fullscreenOverlay");
+const lineNumbers=document.getElementById("lineNumbers");
+
+// Update line numbers
+function updateLineNumbers(){
+  const lines = codeBox.value.split("\n").length;
+  let nums="";
+  for(let i=1;i<=lines;i++) nums+=i+"\n";
+  lineNumbers.innerText=nums;
+}
 
 // Detect language
 function detectLanguage(code){
@@ -87,6 +88,7 @@ function detectLanguage(code){
 
 // Run code
 function runCode(){
+  updateLineNumbers();
   const code=codeBox.value;
   const lang=detectLanguage(code);
   pyOutput.style.display="none"; iframe.style.display="block";
@@ -109,15 +111,21 @@ function runCode(){
   }
 }
 
-// Auto-run
+// Auto-run with debounce
 let autoRunTimeout;
 codeBox.addEventListener('input', ()=>{
   clearTimeout(autoRunTimeout);
-  autoRunTimeout=setTimeout(runCode,500);
+  autoRunTimeout=setTimeout(runCode,300);
 });
+
+// Buttons functionality
+document.getElementById("fullScreenBtn").addEventListener("click", ()=>{ alert("Full Screen feature coming"); });
+document.getElementById("downloadBtn").addEventListener("click", ()=>{ alert("Download feature coming"); });
+document.getElementById("menuBtn").addEventListener("click", ()=>{ alert("Menu feature coming"); });
 
 // Initial run
 runCode();
+updateLineNumbers();
 </script>
 
 </body>
