@@ -2,86 +2,103 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Full Screen Preview</title>
+<title>Full Screen Output</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
     margin:0;
-    background:#000;
+    background:white;
     height:100vh;
-    display:flex;
-    flex-direction:column;
+    overflow:hidden;
 }
 
-/* Header */
-header{
-    height:50px;
-    background:#111;
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    padding:0 10px;
-    gap:15px;
-    border-bottom:1px solid #333;
-}
-
-header svg{
-    width:26px;
-    height:26px;
-    fill:white;
-    cursor:pointer;
-}
-
-/* Frame */
+/* HTML / CSS / JS Output */
 iframe{
-    flex:1;
     width:100%;
+    height:100%;
     border:none;
+    background:white;
+}
+
+/* Python Output */
+pre{
+    margin:0;
+    padding:15px;
+    font-size:16px;
+    background:white;
+    color:black;
+    white-space:pre-wrap;
+    font-family:monospace;
+    height:100vh;
+    overflow:auto;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-    <!-- Back Button -->
-    <div onclick="goBack()">
-        <svg viewBox="0 0 24 24">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-        </svg>
-    </div>
+<div id="screen"></div>
 
-    <!-- Download Button -->
-    <div onclick="downloadFull()">
-        <svg viewBox="0 0 24 24">
-            <path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/>
-        </svg>
-    </div>
-</header>
-
-<!-- Full Screen Output -->
-<iframe id="preview"></iframe>
-
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 <script>
-// Load code from index.html save
-document.getElementById("preview").srcdoc =
-    localStorage.getItem("fullScreenCode") || "<h2 style='color:white'>No Code Found</h2>";
+let pyodide;
 
-// Back to index without losing code
-function goBack(){
-    window.location.href = "index.html";
+// Python loader
+async function initPy(){
+    pyodide = await loadPyodide();
+}
+initPy();
+
+// Detect Language
+function detectLanguage(code){
+    code = code.trim();
+    if(code.includes("<") && code.includes(">")) return "html";
+    if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
+    if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
+    if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
+    return "txt";
 }
 
-// Download file
-function downloadFull(){
-    let code = localStorage.getItem("fullScreenCode") || "";
-    const blob = new Blob([code], {type:"text/html"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "index.html";
-    a.click();
+const container = document.getElementById("screen");
+let code = localStorage.getItem("fullScreenCode") || "";
+let lang = detectLanguage(code);
+
+// Render fullscreen output
+async function render(){
+    if(lang === "python"){
+        let pre = document.createElement("pre");
+        pre.textContent = "Running Python...";
+        container.appendChild(pre);
+
+        if(pyodide){
+            try{
+                let result = await pyodide.runPythonAsync(code);
+                pre.textContent = result !== undefined ? result : "";
+            }catch(err){
+                pre.textContent = "Error: " + err;
+            }
+        }
+    }
+    else if(lang === "txt"){
+        let pre = document.createElement("pre");
+        pre.textContent = code;
+        container.appendChild(pre);
+    }
+    else{
+        let iframe = document.createElement("iframe");
+        let html = "";
+
+        if(lang === "html") html = code;
+        if(lang === "css") html = `<style>${code}</style>`;
+        if(lang === "js") html = `<script>${code}<\/script>`;
+
+        iframe.srcdoc = html;
+        container.appendChild(iframe);
+    }
 }
+
+render();
 </script>
 
 </body>
