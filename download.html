@@ -1,0 +1,45 @@
+<!-- download.html -->
+<script type="module">
+import { projects } from './menu.html';
+
+// Create a button handler
+const downloadBtn = document.getElementById("downloadBtn");
+downloadBtn.addEventListener("click", async () => {
+  if (projects.length === 0) {
+    alert("No projects to download!");
+    return;
+  }
+
+  // Ask which project to download
+  const projectNames = projects.map(p => p.name).join("\n");
+  const pname = prompt(`Which project to download?\n${projectNames}`);
+  if (!pname) return;
+
+  const proj = projects.find(p => p.name === pname);
+  if (!proj) {
+    alert("Project not found!");
+    return;
+  }
+
+  // Create zip
+  const zip = new JSZip();
+
+  proj.files.forEach(file => {
+    // Add file with its filename and content
+    zip.file(file.filename, file.content);
+  });
+
+  // Generate zip blob
+  const content = await zip.generateAsync({ type: "blob" });
+
+  // Download
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(content);
+  a.download = `${proj.name}.zip`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+</script>
+
+<!-- JSZip library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.11.0/jszip.min.js"></script>
