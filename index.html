@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Live Code IDE</title>
+<title>Live Code IDE - Split View</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Highlight.js for auto color -->
+<!-- Highlight.js for syntax color -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
@@ -57,41 +57,54 @@ header svg{
     cursor:pointer;
 }
 
-/* Editor + Highlight Wrapper */
-.editorWrapper {
+/* Editor + Preview */
+.mainSplit{
     flex:1;
     display:flex;
-    width:100%;
+    flex-direction:column;
+}
+
+.editorWrapper{
+    flex:1;
     position:relative;
+    border-bottom:1px solid var(--border);
 }
 
 #code {
+    position:absolute;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+    border:none;
+    outline:none;
+    padding:10px;
+    font-family:monospace;
+    font-size:15px;
+    color:transparent;
+    caret-color:var(--text);
+    background:transparent;
+    overflow:auto;
+    z-index:2;
+    white-space:pre;
+}
+
+#highlightBox{
+    width:100%;
+    height:100%;
+    padding:10px;
+    font-family:monospace;
+    font-size:15px;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    overflow:auto;
+    color:var(--text);
+}
+
+#output{
     flex:1;
     width:100%;
     border:none;
-    outline:none;
-    font-size:15px;
-    padding:10px;
-    font-family:monospace;
-    background:transparent;
-    color:transparent;
-    caret-color:var(--text);
-    white-space:pre;
-    overflow:auto;
-    z-index:2; /* top layer */
-    position:absolute;
-}
-
-/* Highlight layer */
-#highlightBox {
-    flex:1;
-    padding:10px;
-    font-size:15px;
-    font-family:monospace;
-    white-space:pre-wrap;
-    word-wrap:break-word;
-    overflow-y:auto;
-    color:var(--text);
+    background:white;
 }
 
 /* Read More */
@@ -107,12 +120,10 @@ header svg{
 }
 </style>
 </head>
-
 <body>
 
 <header>
     <div class="left">
-
         <!-- Menu -->
         <svg onclick="openMenu()" viewBox="0 0 24 24">
             <path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/>
@@ -127,7 +138,6 @@ header svg{
         <svg onclick="downloadCode()" viewBox="0 0 24 24">
             <path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/>
         </svg>
-
     </div>
 
     <div class="right">
@@ -138,17 +148,16 @@ header svg{
     </div>
 </header>
 
+<div class="mainSplit">
+    <!-- Editor half -->
+    <div class="editorWrapper">
+        <pre><code id="highlightBox" class="language-html"></code></pre>
+        <textarea id="code" placeholder="Write your code..."></textarea>
+    </div>
 
-<!-- Editor + Highlight -->
-<div class="editorWrapper">
-    
-    <pre><code id="highlightBox" class="language-html"></code></pre>
-
-    <textarea id="code" placeholder="Write your code..."></textarea>
-
+    <!-- Preview half -->
+    <iframe id="output"></iframe>
 </div>
-
-<iframe id="output"></iframe>
 
 <script>
 // LOAD THEME
@@ -164,17 +173,17 @@ function toggleTheme(){
     );
 }
 
-/* ---------- AUTO SAVE + AUTO RUN ---------- */
+// ELEMENTS
 const editor = document.getElementById("code");
 const highlightBox = document.getElementById("highlightBox");
 const output = document.getElementById("output");
 
+// LOAD SAVED CODE
 editor.value = localStorage.getItem("savedCode") || "";
 updateAll();
 
-editor.addEventListener("input", ()=>{
-    updateAll();
-});
+// AUTO RUN + HIGHLIGHT
+editor.addEventListener("input", ()=>{ updateAll(); });
 
 function updateAll(){
     const code = editor.value;
@@ -182,7 +191,7 @@ function updateAll(){
     // Save
     localStorage.setItem("savedCode", code);
 
-    // Run
+    // Run preview
     output.srcdoc = code;
 
     // Highlight
@@ -192,15 +201,11 @@ function updateAll(){
     applyReadMore();
 }
 
-/* ---------- READ MORE SYSTEM ---------- */
-
+/* READ MORE SYSTEM */
 function applyReadMore(){
     let text = highlightBox.innerHTML;
     let lines = text.split("\n");
-
-    if(lines.length <= 20){
-        return; // no read more needed
-    }
+    if(lines.length <= 20) return;
 
     let visible = lines.slice(0,20).join("\n");
     let hidden = lines.slice(20).join("\n");
@@ -215,23 +220,23 @@ function showMore(){
     document.querySelector(".readmore-btn").remove();
 }
 
-/* ---------- DOWNLOAD ---------- */
+/* DOWNLOAD */
 function downloadCode(){
-    let code = editor.value;
-    let blob = new Blob([code], {type:"text/plain"});
-    let a = document.createElement("a");
+    const code = editor.value;
+    const blob = new Blob([code], {type:"text/plain"});
+    const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "code.html";
     a.click();
 }
 
-/* ---------- FULL SCREEN ---------- */
+/* FULL SCREEN */
 function openFullScreen(){
     localStorage.setItem("fullScreenCode", editor.value);
     window.location.href = "full_screen.html";
 }
 
-/* ---------- MENU ---------- */
+/* MENU */
 function openMenu(){
     alert("Menu system will be added...");
 }
