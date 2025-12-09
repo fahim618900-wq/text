@@ -1,0 +1,85 @@
+<!-- full_screen.html -->
+<script type="module">
+const fullScreenBtn = document.getElementById("fullScreenBtn");
+const overlay = document.getElementById("fullscreenOverlay");
+const codeBox = document.getElementById("code");
+const iframe = document.getElementById("output");
+const pyOutput = document.getElementById("pyOutput");
+
+fullScreenBtn.addEventListener("click", () => openFullScreen());
+
+function detectLanguage(code){
+  code = code.trim();
+  if(code.startsWith("<") && code.includes(">")) return "html";
+  if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
+  if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
+  if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
+  return "txt";
+}
+
+async function openFullScreen(){
+  overlay.innerHTML=""; // clear
+  overlay.style.display="block";
+
+  const code = codeBox.value;
+  const lang = detectLanguage(code);
+
+  if(lang === "python"){
+    const pre = document.createElement("pre");
+    overlay.appendChild(pre);
+    if(window.pyodide){
+      window.pyodide.runPythonAsync(code).then(res=>{
+        pre.innerText = res!==undefined?res:"";
+      }).catch(err=>{
+        pre.innerText = "Error: "+err;
+      });
+    } else pre.innerText="Python loading...";
+  } else if(lang === "txt"){
+    const pre = document.createElement("pre");
+    pre.innerText = code;
+    overlay.appendChild(pre);
+  } else {
+    const iframeFull = document.createElement("iframe");
+    let content = "";
+    if(lang === "html") content = code;
+    else if(lang === "css") content = `<style>${code}</style>`;
+    else if(lang === "js") content = `<script>${code}<\/script>`;
+    iframeFull.srcdoc = content;
+    iframeFull.style.width="100%";
+    iframeFull.style.height="100%";
+    iframeFull.style.border="none";
+    overlay.appendChild(iframeFull);
+  }
+
+  // Push state for back button
+  history.pushState({fullscreen:true}, "");
+}
+
+// Close overlay on back button
+window.addEventListener("popstate", function(event){
+  if(overlay.style.display === "block"){
+    overlay.style.display = "none";
+  }
+});
+</script>
+
+<style>
+#fullscreenOverlay {
+  display:none;
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:#fff;
+  z-index:9999;
+  padding:0; margin:0;
+  overflow:auto;
+}
+#fullscreenOverlay iframe, #fullscreenOverlay pre {
+  width:100%;
+  height:100%;
+  padding:20px;
+  box-sizing:border-box;
+  font-family: monospace;
+  font-size:16px;
+}
+</style>
