@@ -19,12 +19,14 @@
     --text:#000000;
     --header:#f5f5f5;
     --border:#dcdcdc;
+    --icon:#000000;
 }
 body.dark{
     --bg:#0d0d0d;
     --text:#ffffff;
     --header:#1a1a1a;
     --border:#333333;
+    --icon:#ffffff;
 }
 
 body{
@@ -43,21 +45,16 @@ header{
     background:var(--header);
     display:flex;
     align-items:center;
-    justify-content:space-between;
+    justify-content:flex-start;
     padding:0 10px;
     border-bottom:1px solid var(--border);
-}
-
-.header-left, .header-right{
-    display:flex;
-    align-items:center;
-    gap:15px;
+    gap:20px;
 }
 
 header svg{
     width:26px;
     height:26px;
-    fill:var(--text);
+    fill:var(--icon);
     cursor:pointer;
 }
 
@@ -70,15 +67,13 @@ header span{
 /* Editor */
 #editor{
     flex:1;
-    padding-bottom:0.5in; /* bottom space */
+    padding-bottom:0.5in; /* bottom padding */
 }
 .CodeMirror{
     height:100%;
     font-size:15px;
-    line-height:1.3; /* normal line spacing */
+    line-height:1.3;
 }
-
-/* Prevent double enter effect */
 .CodeMirror pre{
     margin:0;
 }
@@ -88,27 +83,17 @@ header span{
 <body>
 
 <header>
-    <div class="header-left">
-        <!-- Full Screen -->
-        <svg onclick="openFullScreen()" viewBox="0 0 24 24">
-            <path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/>
-        </svg><span onclick="openFullScreen()">Full Screen</span>
+    <!-- Full Screen -->
+    <svg onclick="openFullScreen()" viewBox="0 0 24 24">
+        <path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/>
+    </svg><span onclick="openFullScreen()">Full Screen</span>
 
-        <!-- Download -->
-        <svg onclick="downloadCode()" viewBox="0 0 24 24">
-            <path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/>
-        </svg><span onclick="downloadCode()">Download</span>
-    </div>
-
-    <div class="header-right">
-        <!-- Theme -->
-        <svg onclick="toggleTheme()" viewBox="0 0 24 24">
-            <path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 12,3Z" />
-        </svg>
-    </div>
+    <!-- Download -->
+    <svg onclick="downloadCode()" viewBox="0 0 24 24">
+        <path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/>
+    </svg><span onclick="downloadCode()">Download</span>
 </header>
 
-<!-- Editor -->
 <textarea id="code"></textarea>
 
 <script>
@@ -126,7 +111,7 @@ const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
     theme: "default",
     tabSize:2,
     viewportMargin: Infinity,
-    lineWrapping: true // Wrap long lines
+    lineWrapping: true
 });
 
 // Load saved code
@@ -134,8 +119,7 @@ editor.setValue(localStorage.getItem("savedCode")||"");
 
 // Auto-save only
 editor.on("change", ()=>{
-    const code = editor.getValue();
-    localStorage.setItem("savedCode", code);
+    localStorage.setItem("savedCode", editor.getValue());
 });
 
 // Download
