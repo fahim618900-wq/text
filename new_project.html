@@ -1,0 +1,32 @@
+<!-- new_project.html -->
+<script type="module">
+import { projects, showProjects } from './menu.html';
+
+export function createNewProject() {
+  const pname = prompt("Enter project name:");
+  if (!pname) return;
+
+  let files = [];
+  let addMore = true;
+
+  while(addMore){
+    const fname = prompt("Enter file name (e.g., index.html, main.py):");
+    if (!fname) break;
+    const content = prompt(`Enter content for ${fname}:`, "");
+    files.push({ filename: fname, content: content || "" });
+    addMore = confirm("Add another file?");
+  }
+
+  if(files.length===0){
+    alert("No files added. Project not created.");
+    return;
+  }
+
+  projects.push({ name: pname, files: files });
+  alert(`Project "${pname}" created with ${files.length} file(s).`);
+  showProjects();
+}
+
+// Optionally attach to menu button in menu.html
+// document.getElementById("newProjectBtn").addEventListener("click", createNewProject);
+</script>
