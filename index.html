@@ -15,107 +15,102 @@
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/python/python.js"></script>
 
 <style>
-:root{
-    --bg:#ffffff;
-    --text:#000000;
-    --header:#f5f5f5;
-    --border:#dcdcdc;
-    --icon:#000000;
-}
-body.dark{
-    --bg:#0d0d0d;
-    --text:#ffffff;
-    --header:#1a1a1a;
-    --border:#333333;
-    --icon:#ffffff;
-}
-
 body{
     margin:0;
-    background:var(--bg);
-    color:var(--text);
     font-family:Arial,sans-serif;
     height:100vh;
     display:flex;
     flex-direction:column;
+    background:#f5f5f5;
 }
 
-/* Header */
+/* Header Buttons */
 header{
-    height:50px;
-    background:var(--header);
+    height:60px;
     display:flex;
     align-items:center;
-    justify-content:flex-start;
-    padding:0 10px;
-    border-bottom:1px solid var(--border);
-    gap:20px;
+    gap:10px;
+    padding:5px 10px;
+    background:#e0e0e0;
+    border-bottom:1px solid #ccc;
 }
 
-header svg{
-    width:26px;
-    height:26px;
-    fill:var(--icon);
+button.action-btn{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:5px 10px;
+    border:none;
+    border-radius:5px;
+    background:#4caf50;
+    color:#fff;
+    font-weight:bold;
     cursor:pointer;
+    user-select:none; /* prevent copy */
 }
 
-header span{
-    margin-left:5px;
-    font-size:14px;
-    cursor:pointer;
+button.action-btn span{
+    user-select:none; /* prevent copy */
+}
+
+button.action-btn svg{
+    width:20px;
+    height:20px;
+    fill:#ffffff;
 }
 
 /* Editor */
 #editor{
     flex:1;
-    max-height:50vh; /* half screen */
+    max-height:50vh;
+    padding-bottom:0.5in;
 }
 .CodeMirror{
     height:100%;
     font-size:15px;
-    line-height:1.4; /* adjust line spacing */
+    line-height:1.4;
 }
 .CodeMirror pre{
-    margin:0; /* prevents double enter spacing */
+    margin:0;
 }
 </style>
 </head>
-
 <body>
 
 <header>
-    <!-- Full Screen -->
-    <svg onclick="openFullScreen()" viewBox="0 0 24 24">
-        <path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/>
-    </svg><span onclick="openFullScreen()">Full Screen</span>
+    <button class="action-btn" onclick="openFullScreen()">
+        <svg viewBox="0 0 24 24">
+            <path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/>
+        </svg>
+        <span>Full Screen</span>
+    </button>
 
-    <!-- Download -->
-    <svg onclick="downloadCode()" viewBox="0 0 24 24">
-        <path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/>
-    </svg><span onclick="downloadCode()">Download</span>
+    <button class="action-btn" onclick="downloadCode()">
+        <svg viewBox="0 0 24 24">
+            <path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/>
+        </svg>
+        <span>Download</span>
+    </button>
 </header>
 
 <textarea id="code"></textarea>
 
 <script>
-// Theme
-if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
-
 // CodeMirror setup
 const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-    mode: "htmlmixed",        // auto-detect HTML/JS/CSS
+    mode: "htmlmixed",
     lineNumbers: true,
-    theme: "neo",             // syntax coloring theme
+    theme: "neo",
     tabSize:2,
     viewportMargin: Infinity,
     lineWrapping: true,
-    extraKeys: {"Enter": "newlineAndIndent"} // Enter behaves normally
+    extraKeys: {"Enter": "newlineAndIndent"}
 });
 
 // Load saved code
 editor.setValue(localStorage.getItem("savedCode")||"");
 
-// Auto-save only
+// Auto-save
 editor.on("change", ()=>{
     localStorage.setItem("savedCode", editor.getValue());
 });
