@@ -1,85 +1,88 @@
-<!-- full_screen.html -->
-<script type="module">
-const fullScreenBtn = document.getElementById("fullScreenBtn");
-const overlay = document.getElementById("fullscreenOverlay");
-const codeBox = document.getElementById("code");
-const iframe = document.getElementById("output");
-const pyOutput = document.getElementById("pyOutput");
-
-fullScreenBtn.addEventListener("click", () => openFullScreen());
-
-function detectLanguage(code){
-  code = code.trim();
-  if(code.startsWith("<") && code.includes(">")) return "html";
-  if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
-  if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
-  if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
-  return "txt";
-}
-
-async function openFullScreen(){
-  overlay.innerHTML=""; // clear
-  overlay.style.display="block";
-
-  const code = codeBox.value;
-  const lang = detectLanguage(code);
-
-  if(lang === "python"){
-    const pre = document.createElement("pre");
-    overlay.appendChild(pre);
-    if(window.pyodide){
-      window.pyodide.runPythonAsync(code).then(res=>{
-        pre.innerText = res!==undefined?res:"";
-      }).catch(err=>{
-        pre.innerText = "Error: "+err;
-      });
-    } else pre.innerText="Python loading...";
-  } else if(lang === "txt"){
-    const pre = document.createElement("pre");
-    pre.innerText = code;
-    overlay.appendChild(pre);
-  } else {
-    const iframeFull = document.createElement("iframe");
-    let content = "";
-    if(lang === "html") content = code;
-    else if(lang === "css") content = `<style>${code}</style>`;
-    else if(lang === "js") content = `<script>${code}<\/script>`;
-    iframeFull.srcdoc = content;
-    iframeFull.style.width="100%";
-    iframeFull.style.height="100%";
-    iframeFull.style.border="none";
-    overlay.appendChild(iframeFull);
-  }
-
-  // Push state for back button
-  history.pushState({fullscreen:true}, "");
-}
-
-// Close overlay on back button
-window.addEventListener("popstate", function(event){
-  if(overlay.style.display === "block"){
-    overlay.style.display = "none";
-  }
-});
-</script>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Full Screen Code Output</title>
 <style>
-#fullscreenOverlay {
-  display:none;
-  position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:#fff;
-  z-index:9999;
-  padding:0; margin:0;
-  overflow:auto;
+body, html {
+  margin:0; padding:0; width:100%; height:100%; font-family: monospace; background:#fff;
 }
-#fullscreenOverlay iframe, #fullscreenOverlay pre {
-  width:100%;
-  height:100%;
-  padding:20px;
-  box-sizing:border-box;
-  font-family: monospace;
-  font-size:16px;
+#fullscreenOverlay {
+  position: fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:9999;
+  display:flex; flex-direction:column;
+}
+#closeBtn {
+  padding:10px; background:#007bff; color:#fff; border:none; cursor:pointer; font-size:16px;
+}
+#iframeFull, #preFull {
+  flex:1; border:none; width:100%; padding:20px; box-sizing:border-box; overflow:auto;
 }
 </style>
+</head>
+<body>
+
+<div id="fullscreenOverlay">
+  <button id="closeBtn">Close Full Screen</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script>
+let pyodideReady=false, pyodide;
+async function loadPyodideAndPackages(){
+  pyodide = await loadPyodide();
+  pyodideReady = true;
+}
+loadPyodideAndPackages();
+
+const overlay=document.getElementById("fullscreenOverlay");
+const closeBtn=document.getElementById("closeBtn");
+
+// Get code from localStorage (or URL param)
+const code = localStorage.getItem("fullScreenCode") || "";
+const lang = localStorage.getItem("fullScreenLang") || "txt";
+
+// Close fullscreen
+closeBtn.addEventListener("click", ()=>{
+  window.history.back(); // go back
+});
+
+// Display code
+if(lang==="html"||lang==="css"||lang==="js"){
+  const iframe=document.createElement("iframe");
+  iframe.id="iframeFull";
+  let content="";
+  if(lang==="html") content=code;
+  else if(lang==="css") content=`<style>${code}</style>`;
+  else if(lang==="js") content=`<script>${code}<\/script>`;
+  iframe.srcdoc=content;
+  overlay.appendChild(iframe);
+} else if(lang==="python"){
+  const pre=document.createElement("pre");
+  pre.id="preFull";
+  overlay.appendChild(pre);
+  if(pyodideReady){
+    pyodide.runPythonAsync(code).then(res=>{
+      pre.innerText=res!==undefined?res:"";
+    }).catch(err=>{
+      pre.innerText="Error: "+err;
+    });
+  } else {
+    pre.innerText="Python is loading...";
+  }
+} else { // txt
+  const pre=document.createElement("pre");
+  pre.id="preFull";
+  pre.innerText=code;
+  overlay.appendChild(pre);
+}
+
+// Optional: handle mobile back button
+window.addEventListener('popstate', function(event){
+  overlay.style.display="none";
+});
+history.pushState({fullscreen:true}, "");
+</script>
+
+</body>
+</html>
