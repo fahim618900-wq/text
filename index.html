@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Live Code IDE - Split View</title>
+<title>Live Code IDE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- CodeMirror -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.css">
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/javascript/javascript.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/htmlmixed/htmlmixed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/css/css.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/python/python.js"></script>
 
 <style>
 :root{
@@ -23,7 +31,7 @@ body{
     margin:0;
     background:var(--bg);
     color:var(--text);
-    font-family:Arial, sans-serif;
+    font-family:Arial,sans-serif;
     height:100vh;
     display:flex;
     flex-direction:column;
@@ -40,7 +48,7 @@ header{
     border-bottom:1px solid var(--border);
 }
 
-.left, .right{
+.header-left, .header-right{
     display:flex;
     align-items:center;
     gap:15px;
@@ -53,20 +61,15 @@ header svg{
     cursor:pointer;
 }
 
+header span{
+    margin-left:5px;
+    font-size:14px;
+    cursor:pointer;
+}
+
 /* Editor */
-#code{
-    width:100%;
+#editor{
     height:50vh;
-    border:none;
-    outline:none;
-    font-size:15px;
-    padding:10px;
-    font-family:monospace;
-    background:var(--bg);
-    color:var(--text);
-    overflow:auto;
-    resize:none;
-    box-sizing:border-box;
 }
 
 /* Preview */
@@ -77,27 +80,23 @@ header svg{
 }
 </style>
 </head>
+
 <body>
 
 <header>
-    <div class="left">
-        <!-- Menu -->
-        <svg onclick="openMenu()" viewBox="0 0 24 24">
-            <path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/>
-        </svg>
-
+    <div class="header-left">
         <!-- Full Screen -->
         <svg onclick="openFullScreen()" viewBox="0 0 24 24">
             <path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/>
-        </svg>
+        </svg><span onclick="openFullScreen()">Full Screen</span>
 
         <!-- Download -->
         <svg onclick="downloadCode()" viewBox="0 0 24 24">
             <path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/>
-        </svg>
+        </svg><span onclick="downloadCode()">Download</span>
     </div>
 
-    <div class="right">
+    <div class="header-right">
         <!-- Theme -->
         <svg onclick="toggleTheme()" viewBox="0 0 24 24">
             <path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 12,3Z" />
@@ -105,38 +104,42 @@ header svg{
     </div>
 </header>
 
-<textarea id="code" placeholder="Write your code here..."></textarea>
+<!-- Editor -->
+<textarea id="code"></textarea>
+
+<!-- Preview -->
 <iframe id="iframeOutput"></iframe>
 
 <script>
 // THEME
 if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
-
 function toggleTheme(){
     document.body.classList.toggle("dark");
-    localStorage.setItem("theme",
-        document.body.classList.contains("dark") ? "dark" : "light"
-    );
+    localStorage.setItem("theme", document.body.classList.contains("dark")?"dark":"light");
 }
 
-// ELEMENTS
-const codeBox = document.getElementById("code");
-const output = document.getElementById("iframeOutput");
-
-// LOAD SAVED CODE
-codeBox.value = localStorage.getItem("savedCode") || "";
-output.srcdoc = codeBox.value;
-
-// AUTO-RUN
-codeBox.addEventListener("input", ()=>{
-    const code = codeBox.value;
-    localStorage.setItem("savedCode", code);
-    output.srcdoc = code;
+// CodeMirror setup
+const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+    mode: "htmlmixed",
+    lineNumbers: true,
+    theme: "default",
+    tabSize:2,
+    viewportMargin: Infinity
 });
 
-// DOWNLOAD
+// Load saved code
+editor.setValue(localStorage.getItem("savedCode")||"");
+
+// Auto-run and save
+editor.on("change", ()=>{
+    const code = editor.getValue();
+    localStorage.setItem("savedCode", code);
+    document.getElementById("iframeOutput").srcdoc = code;
+});
+
+// Download
 function downloadCode(){
-    const code = codeBox.value;
+    const code = editor.getValue();
     const blob = new Blob([code], {type:"text/plain"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -144,15 +147,10 @@ function downloadCode(){
     a.click();
 }
 
-// FULLSCREEN
+// Full Screen
 function openFullScreen(){
-    localStorage.setItem("fullScreenCode", codeBox.value);
+    localStorage.setItem("fullScreenCode", editor.getValue());
     window.location.href = "full_screen.html";
-}
-
-// MENU
-function openMenu(){
-    alert("Menu system coming soon...");
 }
 </script>
 
