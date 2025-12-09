@@ -27,13 +27,16 @@ header{
     border-bottom:1px solid #ccc;
     gap:10px;
 }
+.menu-btns{
+    display:flex;gap:10px;
+}
 button.action-btn{
     display:flex;align-items:center;gap:5px;padding:5px 10px;
     border:none;border-radius:5px;background:#4caf50;color:#fff;
     font-weight:bold;cursor:pointer;user-select:none;
 }
 button.action-btn span{user-select:none;}
-button.action-btn svg{width:20px;height:20px;fill:#ffffff;}
+button.action-btn svg{width:20px;height:20px;fill:#fff;}
 #editor{flex:1;max-height:50vh;padding-bottom:0.5in;}
 .CodeMirror{height:100%;font-size:15px;line-height:1.4;}
 .CodeMirror pre{margin:0;}
@@ -42,20 +45,44 @@ button.action-btn svg{width:20px;height:20px;fill:#ffffff;}
 <body>
 
 <header>
-    <button class="action-btn" onclick="openFullScreen()">
-        <svg viewBox="0 0 24 24"><path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/></svg>
-        <span>Full Screen</span>
-    </button>
+    <div class="menu-btns">
+        <button class="action-btn" onclick="openFullScreen()">
+            <svg viewBox="0 0 24 24"><path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/></svg>
+            <span>Full Screen</span>
+        </button>
 
-    <button class="action-btn" onclick="downloadCode()">
-        <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/></svg>
-        <span>Download</span>
-    </button>
+        <button class="action-btn" onclick="downloadCode()">
+            <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/></svg>
+            <span>Download</span>
+        </button>
+
+        <button class="action-btn" onclick="newProject()">
+            <svg viewBox="0 0 24 24"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6v-2z"/></svg>
+            <span>New Project</span>
+        </button>
+
+        <button class="action-btn" onclick="showProjects()">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+            <span>Show Projects</span>
+        </button>
+
+        <button class="action-btn" onclick="toggleTheme()">
+            <svg viewBox="0 0 24 24"><path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 12,3Z"/></svg>
+            <span>Theme</span>
+        </button>
+    </div>
 </header>
 
 <textarea id="code"></textarea>
 
 <script>
+// Theme
+if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
+function toggleTheme(){
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark")?"dark":"light");
+}
+
 // CodeMirror setup
 const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
     mode: "htmlmixed",
@@ -94,7 +121,7 @@ function downloadCode(){
     a.click();
 }
 
-// Simple language detect
+// Language detect
 function detectLanguage(code){
     code = code.trim();
     if(code.includes("<") && code.includes(">")) return "html";
@@ -109,6 +136,12 @@ function openFullScreen(){
     localStorage.setItem("fullScreenCode", editor.getValue());
     window.location.href = "full_screen.html";
 }
+
+// New Project placeholder
+function newProject(){alert("New Project feature coming soon!");}
+
+// Show Projects placeholder
+function showProjects(){alert("Show Projects feature coming soon!");}
 </script>
 
 </body>
