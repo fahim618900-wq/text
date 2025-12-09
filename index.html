@@ -2,10 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Live Code IDE - Menu Example</title>
+<title>Live Code IDE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/theme/neo.css">
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/javascript/javascript.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/htmlmixed/htmlmixed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/css/css.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/python/python.js"></script>
+
 <style>
-body{margin:0;font-family:Arial,sans-serif;}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f5f5;height:100vh;display:flex;flex-direction:column;}
 header{
     height:60px;
     display:flex;
@@ -15,113 +23,72 @@ header{
     border-bottom:1px solid #ccc;
     gap:10px;
 }
-
-button.menu-btn{
-    display:flex;
-    align-items:center;
-    gap:5px;
-    padding:5px 10px;
-    border:none;
-    border-radius:5px;
-    background:#2196f3;
-    color:#fff;
-    font-weight:bold;
-    cursor:pointer;
-    position:relative;
+button.action-btn{
+    display:flex;align-items:center;gap:5px;padding:5px 10px;
+    border:none;border-radius:5px;background:#4caf50;color:#fff;
+    font-weight:bold;cursor:pointer;user-select:none;
 }
-
-button.menu-btn svg{
-    width:20px;
-    height:20px;
-    fill:#fff;
-}
-
-button.menu-btn span{
-    user-select:none;
-}
-
-/* Menu dropdown */
-ul.menu-options{
-    display:none;
-    position:absolute;
-    top:110%;
-    left:0;
-    background:#fff;
-    border:1px solid #ccc;
-    border-radius:5px;
-    padding:5px 0;
-    list-style:none;
-    min-width:150px;
-    z-index:100;
-}
-
-ul.menu-options li{
-    display:flex;
-    align-items:center;
-    gap:5px;
-    padding:5px 10px;
-    cursor:pointer;
-}
-
-ul.menu-options li svg{
-    width:18px;
-    height:18px;
-    fill:#555;
-}
-
-ul.menu-options li span{
-    user-select:none;
-    color:#333;
-}
-
-ul.menu-options li:hover{
-    background:#f0f0f0;
-}
+button.action-btn span{user-select:none;}
+button.action-btn svg{width:20px;height:20px;fill:#ffffff;}
+#editor{flex:1;max-height:50vh;padding-bottom:0.5in;}
+.CodeMirror{height:100%;font-size:15px;line-height:1.4;}
+.CodeMirror pre{margin:0;}
 </style>
 </head>
 <body>
 
 <header>
-    <button class="menu-btn" onclick="toggleMenu(this)">
-        <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
-        <span>Menu</span>
-        <ul class="menu-options">
-            <li onclick="newProject()">
-                <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
-                <span>New Project</span>
-            </li>
-            <li onclick="showProjects()">
-                <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4V6m0 5h16v2H4v-2m0 5h16v2H4v-2z"/></svg>
-                <span>Show Projects</span>
-            </li>
-            <li onclick="themeSettings()">
-                <svg viewBox="0 0 24 24"><path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 12,3Z" /></svg>
-                <span>Theme</span>
-            </li>
-        </ul>
+    <button class="action-btn" onclick="openFullScreen()">
+        <svg viewBox="0 0 24 24"><path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/></svg>
+        <span>Full Screen</span>
+    </button>
+
+    <button class="action-btn" onclick="downloadCode()">
+        <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/></svg>
+        <span>Download</span>
     </button>
 </header>
 
-<script>
-function toggleMenu(btn){
-    const menu = btn.querySelector('.menu-options');
-    const isVisible = menu.style.display === 'block';
-    // Hide all other menus
-    document.querySelectorAll('.menu-options').forEach(m=>m.style.display='none');
-    menu.style.display = isVisible ? 'none' : 'block';
-}
+<textarea id="code"></textarea>
 
-// Hide menu on click outside
-document.addEventListener('click', function(e){
-    if(!e.target.closest('.menu-btn')){
-        document.querySelectorAll('.menu-options').forEach(m=>m.style.display='none');
+<script>
+// CodeMirror setup
+const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+    mode: "htmlmixed",
+    lineNumbers: true,
+    theme: "neo",
+    tabSize:2,
+    viewportMargin: Infinity,
+    lineWrapping: true,
+    extraKeys: {
+        "Enter": "newlineAndIndent",
+        "Backspace": "delCharBefore"
     }
 });
 
-// Example functions
-function newProject(){ alert("New Project Clicked"); }
-function showProjects(){ alert("Show Projects Clicked"); }
-function themeSettings(){ alert("Theme Clicked"); }
+// Load saved code
+editor.setValue(localStorage.getItem("savedCode")||"");
+
+// Auto-save
+editor.on("change", ()=>{
+    localStorage.setItem("savedCode", editor.getValue());
+});
+
+// Download
+function downloadCode(){
+    const code = editor.getValue();
+    const blob = new Blob([code], {type:"text/plain"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "code.html";
+    a.click();
+}
+
+// Full Screen
+function openFullScreen(){
+    localStorage.setItem("fullScreenCode", editor.getValue());
+    window.location.href = "full_screen.html";
+}
 </script>
 
 </body>
