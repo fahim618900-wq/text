@@ -2,103 +2,56 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Full Screen Output</title>
+<title>Full Screen Preview</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
+:root{
+    --bg:#ffffff;
+    --text:#000000;
+}
+body.dark{
+    --bg:#0d0d0d;
+    --text:#ffffff;
+}
+
 body{
     margin:0;
-    background:white;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Arial, sans-serif;
     height:100vh;
     overflow:hidden;
 }
 
-/* HTML / CSS / JS Output */
-iframe{
+#iframeFull{
     width:100%;
     height:100%;
     border:none;
-    background:white;
-}
-
-/* Python Output */
-pre{
-    margin:0;
-    padding:15px;
-    font-size:16px;
-    background:white;
-    color:black;
-    white-space:pre-wrap;
-    font-family:monospace;
-    height:100vh;
-    overflow:auto;
 }
 </style>
 </head>
-
 <body>
 
-<div id="screen"></div>
+<iframe id="iframeFull"></iframe>
 
-<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 <script>
-let pyodide;
-
-// Python loader
-async function initPy(){
-    pyodide = await loadPyodide();
-}
-initPy();
-
-// Detect Language
-function detectLanguage(code){
-    code = code.trim();
-    if(code.includes("<") && code.includes(">")) return "html";
-    if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
-    if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
-    if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
-    return "txt";
+// Load theme
+if(localStorage.getItem("theme") === "dark"){
+    document.body.classList.add("dark");
 }
 
-const container = document.getElementById("screen");
+// Get code from localStorage
 let code = localStorage.getItem("fullScreenCode") || "";
-let lang = detectLanguage(code);
+const iframe = document.getElementById("iframeFull");
+iframe.srcdoc = code;
 
-// Render fullscreen output
-async function render(){
-    if(lang === "python"){
-        let pre = document.createElement("pre");
-        pre.textContent = "Running Python...";
-        container.appendChild(pre);
+// Handle mobile back button
+window.addEventListener('popstate', function(event){
+    window.history.back();
+});
 
-        if(pyodide){
-            try{
-                let result = await pyodide.runPythonAsync(code);
-                pre.textContent = result !== undefined ? result : "";
-            }catch(err){
-                pre.textContent = "Error: " + err;
-            }
-        }
-    }
-    else if(lang === "txt"){
-        let pre = document.createElement("pre");
-        pre.textContent = code;
-        container.appendChild(pre);
-    }
-    else{
-        let iframe = document.createElement("iframe");
-        let html = "";
-
-        if(lang === "html") html = code;
-        if(lang === "css") html = `<style>${code}</style>`;
-        if(lang === "js") html = `<script>${code}<\/script>`;
-
-        iframe.srcdoc = html;
-        container.appendChild(iframe);
-    }
-}
-
-render();
+// Push state to allow back
+history.pushState({}, "");
 </script>
 
 </body>
