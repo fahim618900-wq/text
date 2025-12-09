@@ -35,25 +35,16 @@ header{
 button.action-btn{
     display:flex;align-items:center;gap:3px;
     padding:3px 6px;
-    border:none;border-radius:4px;background:#FFD700;color:#333;
+    border:none;border-radius:4px;background:#4caf50;color:#fff;
     font-weight:bold;cursor:pointer;user-select:none;font-size:13px;
 }
 button.action-btn span{user-select:none;}
-button.action-btn svg{width:18px;height:18px;fill:#333;}
+button.action-btn svg{width:18px;height:18px;fill:#fff;}
 
 /* Editor */
 #editor{flex:1;max-height:50vh;}
 .CodeMirror{height:100%;font-size:15px;line-height:1.4;}
 .CodeMirror pre{margin:0;}
-
-/* লাইন কাটা যাবে */
-.CodeMirror {
-    line-height: 1.4;
-}
-.CodeMirror-scroll {
-    overflow-x: auto;
-    overflow-y: auto;
-}
 
 /* Fullscreen overlay */
 #fullscreenOverlay{
@@ -62,96 +53,12 @@ button.action-btn svg{width:18px;height:18px;fill:#333;}
     background:#fff;z-index:9999;
 }
 #fullscreenOverlay iframe{width:100%;height:100%;border:none;}
-
-/* মেনু স্টাইল */
-.menu-container {
-    position: relative;
-    display: inline-block;
-}
-
-.menu-btn {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    padding: 3px 6px;
-    border: none;
-    border-radius: 4px;
-    background: #FFD700;
-    color: #333;
-    font-weight: bold;
-    cursor: pointer;
-    user-select: none;
-    font-size: 13px;
-}
-
-.menu-btn svg {
-    width: 18px;
-    height: 18px;
-    fill: #333;
-}
-
-.menu-dropdown {
-    display: none;
-    position: absolute;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-    border-radius: 4px;
-    top: 100%;
-    left: 0;
-    margin-top: 5px;
-}
-
-.menu-dropdown.show {
-    display: block;
-}
-
-.menu-item {
-    color: #333;
-    padding: 8px 12px;
-    text-decoration: none;
-    display: block;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-.menu-item:hover {
-    background-color: #f1f1f1;
-}
-
-.menu-divider {
-    height: 1px;
-    background-color: #ddd;
-    margin: 5px 0;
-}
 </style>
 </head>
 <body>
 
 <header>
     <div class="menu-btns">
-        <!-- মেনু বাটন -->
-        <div class="menu-container">
-            <button class="menu-btn" onclick="toggleMenu()">
-                <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-                <span>Menu</span>
-            </button>
-            <div class="menu-dropdown" id="menuDropdown">
-                <button class="menu-item" onclick="changeMode('htmlmixed')">HTML Mode</button>
-                <button class="menu-item" onclick="changeMode('javascript')">JavaScript Mode</button>
-                <button class="menu-item" onclick="changeMode('css')">CSS Mode</button>
-                <button class="menu-item" onclick="changeMode('python')">Python Mode</button>
-                <div class="menu-divider"></div>
-                <button class="menu-item" onclick="clearCode()">Clear Code</button>
-                <button class="menu-item" onclick="formatCode()">Format Code</button>
-            </div>
-        </div>
-        
         <button class="action-btn" onclick="openFullScreen()">
             <svg viewBox="0 0 24 24"><path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/></svg>
             <span>Full Screen</span>
@@ -178,15 +85,14 @@ function toggleTheme(){
     localStorage.setItem("theme", document.body.classList.contains("dark")?"dark":"light");
 }
 
-// CodeMirror setup - লাইন কাটা সক্ষম করা হয়েছে
+// CodeMirror setup
 const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
     mode: "htmlmixed",
     lineNumbers: true,
     theme: "neo",
     tabSize:2,
     viewportMargin: Infinity,
-    lineWrapping: true, // লাইন কাটা সক্ষম
-    lineHeight: 1.4,
+    lineWrapping: true,
     extraKeys: {
         "Enter": "newlineAndIndent",
         "Backspace": "delCharBefore"
@@ -200,62 +106,6 @@ editor.setValue(localStorage.getItem("savedCode")||"");
 editor.on("change", ()=>{
     localStorage.setItem("savedCode", editor.getValue());
 });
-
-// মেনু ফাংশন
-function toggleMenu() {
-    const menu = document.getElementById('menuDropdown');
-    menu.classList.toggle('show');
-}
-
-// মেনু বাইরে ক্লিক করলে বন্ধ হবে
-document.addEventListener('click', function(event) {
-    const menu = document.getElementById('menuDropdown');
-    const menuBtn = document.querySelector('.menu-btn');
-    
-    if (!menu.contains(event.target) && !menuBtn.contains(event.target)) {
-        menu.classList.remove('show');
-    }
-});
-
-function changeMode(mode) {
-    editor.setOption("mode", mode);
-    document.getElementById('menuDropdown').classList.remove('show');
-}
-
-function clearCode() {
-    if (confirm('Are you sure you want to clear all code?')) {
-        editor.setValue('');
-    }
-    document.getElementById('menuDropdown').classList.remove('show');
-}
-
-function formatCode() {
-    const code = editor.getValue();
-    const mode = editor.getOption("mode");
-    
-    // Simple formatting based on mode
-    if (mode === 'htmlmixed') {
-        // Simple HTML formatting
-        let formatted = code
-            .replace(/></g, '>\n<')
-            .replace(/\n\s*\n/g, '\n')
-            .replace(/(<[^>]+>)/g, '\n$1\n')
-            .replace(/\n\n/g, '\n')
-            .trim();
-        editor.setValue(formatted);
-    } else if (mode === 'javascript') {
-        // Simple JS formatting
-        let formatted = code
-            .replace(/;/g, ';\n')
-            .replace(/{/g, ' {\n')
-            .replace(/}/g, '\n}')
-            .replace(/\n\s*\n/g, '\n')
-            .trim();
-        editor.setValue(formatted);
-    }
-    
-    document.getElementById('menuDropdown').classList.remove('show');
-}
 
 // Download
 function downloadCode(){
