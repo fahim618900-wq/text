@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <title>Live Code IDE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- CodeMirror CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/theme/neo.css">
+
+<!-- CodeMirror JS -->
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/javascript/javascript.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/htmlmixed/htmlmixed.js"></script>
@@ -80,8 +84,24 @@ function downloadCode(){
     const blob = new Blob([code], {type:"text/plain"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "code.html";
+    const lang = detectLanguage(code);
+    let ext = "txt";
+    if(lang==="html") ext="html";
+    if(lang==="css") ext="css";
+    if(lang==="js") ext="js";
+    if(lang==="python") ext="py";
+    a.download = "code."+ext;
     a.click();
+}
+
+// Simple language detect
+function detectLanguage(code){
+    code = code.trim();
+    if(code.includes("<") && code.includes(">")) return "html";
+    if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
+    if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
+    if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
+    return "txt";
 }
 
 // Full Screen
