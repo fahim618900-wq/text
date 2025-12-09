@@ -1,0 +1,132 @@
+<!-- menu.html -->
+<script type="module">
+export let projects = [];
+
+const menuBtn = document.getElementById("menuBtn");
+const menuDropdown = document.createElement("div");
+menuDropdown.className = "dropdown";
+menuDropdown.style.display = "none";
+menuDropdown.style.position = "absolute";
+menuDropdown.style.top = "35px";
+menuDropdown.style.left = "0";
+menuDropdown.style.background = "#fff";
+menuDropdown.style.border = "1px solid #ccc";
+menuDropdown.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
+menuDropdown.style.flexDirection = "column";
+menuDropdown.style.minWidth = "200px";
+menuDropdown.style.zIndex = "100";
+
+// Buttons
+const newBtn = document.createElement("button");
+newBtn.innerText = "New Project";
+newBtn.onclick = () => {
+  const pname = prompt("Enter project name:");
+  if (!pname) return;
+  const mainFile = prompt("Enter main file name (e.g., index.html, main.py):");
+  if (!mainFile) return;
+  const code = document.getElementById("code").value;
+  const newP = { name: pname, files: [{ filename: mainFile, content: code }] };
+  projects.push(newP);
+  alert("Project created!");
+};
+
+const showBtn = document.createElement("button");
+showBtn.innerText = "Show Projects";
+showBtn.onclick = () => {
+  toggleProjectList();
+};
+
+const themeBtn = document.createElement("button");
+themeBtn.innerText = "Theme + Layout";
+themeBtn.onclick = () => {
+  document.body.classList.toggle("dark-theme");
+};
+
+// Append buttons
+menuDropdown.appendChild(newBtn);
+menuDropdown.appendChild(showBtn);
+menuDropdown.appendChild(themeBtn);
+document.body.appendChild(menuDropdown);
+
+// Toggle dropdown
+menuBtn.addEventListener("click", () => {
+  menuDropdown.style.display =
+    menuDropdown.style.display === "flex" ? "none" : "flex";
+});
+
+// Close dropdown on outside click
+document.addEventListener("click", (e) => {
+  if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+    menuDropdown.style.display = "none";
+  }
+});
+
+// Project list div
+const projectListDiv = document.createElement("div");
+projectListDiv.className = "project-list";
+projectListDiv.style.display = "none";
+projectListDiv.style.maxHeight = "300px";
+projectListDiv.style.overflow = "auto";
+projectListDiv.style.borderTop = "1px solid #ccc";
+projectListDiv.style.marginTop = "5px";
+document.getElementById("main").appendChild(projectListDiv);
+
+// Toggle Project List
+function toggleProjectList() {
+  if (projectListDiv.style.display === "block") {
+    projectListDiv.style.display = "none";
+    return;
+  }
+  projectListDiv.style.display = "block";
+  showProjects();
+}
+
+// Show projects
+export function showProjects() {
+  projectListDiv.innerHTML = "";
+  if (projects.length === 0) {
+    projectListDiv.innerHTML = "<i>No projects</i>";
+    return;
+  }
+  projects.forEach((p, idx) => {
+    const div = document.createElement("div");
+    div.className = "project-item";
+    div.style.display = "flex";
+    div.style.justifyContent = "space-between";
+    div.style.alignItems = "center";
+    div.style.padding = "5px 10px";
+    div.style.borderBottom = "1px solid #eee";
+
+    const span = document.createElement("span");
+    span.innerText = p.name;
+    span.style.cursor = "pointer";
+    span.onclick = () => openProject(idx);
+
+    const delBtn = document.createElement("button");
+    delBtn.innerText = "Delete";
+    delBtn.style.padding = "2px 5px";
+    delBtn.style.fontSize = "12px";
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (confirm("Delete project?")) {
+        projects.splice(idx, 1);
+        showProjects();
+      }
+    };
+
+    div.appendChild(span);
+    div.appendChild(delBtn);
+    projectListDiv.appendChild(div);
+  });
+}
+
+// Open project in editor
+function openProject(idx) {
+  const proj = projects[idx];
+  if (proj.files.length > 0) {
+    document.getElementById("code").value = proj.files[0].content;
+    document.getElementById("code").dispatchEvent(new Event("input"));
+  }
+}
+
+</script>
