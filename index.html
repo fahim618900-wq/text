@@ -388,7 +388,7 @@ editor.on("change",function(){
 
 
 /* =========================
-   RUN FULL SCREEN
+   RUN (Overlay only)
 ========================= */
 
 function runFullScreen(){
@@ -405,18 +405,7 @@ function runFullScreen(){
 
     screen.style.display = "block";
 
-    /*
-     * Browser Fullscreen
-     */
-    if(screen.requestFullscreen){
-
-        screen.requestFullscreen()
-        .catch(function(){
-            /* Browser fullscreen না দিলেও
-               overlay fullscreen থাকবে */
-        });
-
-    }
+    /* Browser Fullscreen বন্ধ করা হয়েছে */
 }
 
 
@@ -430,12 +419,7 @@ function closeFullScreen(){
         "resultScreen"
     ).style.display = "none";
 
-    if(document.fullscreenElement){
-
-        document.exitFullscreen()
-        .catch(function(){});
-
-    }
+    /* Browser Fullscreen exit বন্ধ করা হয়েছে */
 }
 
 
@@ -508,26 +492,6 @@ function downloadCode(){
 
     },1000);
 }
-
-
-/* =========================
-   FULLSCREEN CHANGE
-========================= */
-
-document.addEventListener(
-    "fullscreenchange",
-    function(){
-
-        if(!document.fullscreenElement){
-
-            document.getElementById(
-                "resultScreen"
-            ).style.display = "none";
-
-        }
-
-    }
-);
 
 
 /* =========================
