@@ -13,8 +13,14 @@ href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.css">
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/xml/xml.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/css/css.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/javascript/javascript.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/htmlmixed/htmlmixed.js">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/htmlmixed/htmlmixed.js"></script>
+
+<!-- Addons: auto-close brackets/tags, bracket match, active line, comment toggle -->
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/addon/edit/closebrackets.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/addon/edit/closetag.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/addon/edit/matchbrackets.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/addon/selection/active-line.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/addon/comment/comment.js"></script>
 
 <style>
 html,body{
@@ -329,6 +335,19 @@ html,body{
 
 <script>
 
+/* =========================
+   Safe localStorage
+   (private mode / sandbox এ error দিলেও editor যেন না ভাঙে)
+========================= */
+function lsGet(k){
+    try{ return localStorage.getItem(k); }catch(e){ return null; }
+}
+function lsSet(k,v){
+    try{ localStorage.setItem(k,v); }catch(e){}
+}
+
+const isTouch = !window.matchMedia("(pointer:fine)").matches;
+
 const editor = CodeMirror.fromTextArea(
     document.getElementById("code"),
     {
@@ -340,56 +359,139 @@ const editor = CodeMirror.fromTextArea(
         tabSize:2,
         indentUnit:2,
         indentWithTabs:false,
+        smartIndent:true,
+        electricChars:true,
 
         autofocus:true,
         viewportMargin:Infinity,
 
+        /* কোড লেখার জন্য: অটো-সংশোধন/স্পেলচেক বন্ধ */
+        spellcheck:false,
+        autocorrect:false,
+        autocapitalize:false,
+
+        /* অটো ক্লোজ ব্র্যাকেট, ট্যাগ, ও ম্যাচিং */
+        autoCloseBrackets:true,
+        autoCloseTags:true,
+        matchBrackets:true,
+        styleActiveLine:true,
+
         extraKeys:{
 
-            /* Computer: Shift + Enter */
-            "Shift-Enter":function(){
-                runFullScreen();
-            },
+            /* Computer: Shift + Enter / Ctrl + Enter = Run */
+            "Shift-Enter":function(){ runFullScreen(); },
+            "Ctrl-Enter":function(){ runFullScreen(); },
+            "Cmd-Enter":function(){ runFullScreen(); },
 
-            /* Tab = 2 spaces */
+            /* Tab: সিলেকশন থাকলে সব লাইন ইন্ডেন্ট, না থাকলে স্পেস */
             "Tab":function(cm){
-                cm.replaceSelection("  ");
+                if(cm.somethingSelected()){
+                    cm.indentSelection("add");
+                }else{
+                    cm.replaceSelection(
+                        Array(cm.getOption("indentUnit") + 1).join(" "),
+                        "end",
+                        "+input"
+                    );
+                }
             },
 
-            /*
-             * Computer: Ctrl + D
-             *
-             * Browser-এর default Ctrl+D
-             * bookmark করার কাজ বন্ধ করে
-             * Download চালাবে।
-             */
-            "Ctrl-D":function(){
-                downloadCode();
-            }
+            /* Shift+Tab: ইন্ডেন্ট কমানো */
+            "Shift-Tab":function(cm){
+                cm.indentSelection("subtract");
+            },
+
+            /* Ctrl + / = comment toggle */
+            "Ctrl-/":"toggleComment",
+            "Cmd-/":"toggleComment",
+
+            /* Ctrl + D / Ctrl + S = Download (browser এর default বন্ধ) */
+            "Ctrl-D":function(){ downloadCode(); },
+            "Ctrl-S":function(){ downloadCode(); },
+            "Cmd-S":function(){ downloadCode(); }
 
         }
     }
 );
 
 
-/* Auto Save */
-const savedCode = localStorage.getItem("liveCode");
+/* =========================
+   Auto Save
+========================= */
+const savedCode = lsGet("liveCode");
 
-if(savedCode){
+if(savedCode !== null){
     editor.setValue(savedCode);
+    /* সেভ করা কোড লোড হওয়াকে যেন Ctrl+Z দিয়ে আবার ফিরিয়ে না নেওয়া যায় */
+    editor.clearHistory();
+}
+
+let saveTimer = null;
+
+function saveNow(){
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    lsSet("liveCode", editor.getValue());
 }
 
 editor.on("change",function(){
-    localStorage.setItem(
-        "liveCode",
-        editor.getValue()
-    );
+    /* প্রতিটি কী-প্রেসে নয়, থেমে গেলে সেভ */
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNow, 300);
 });
+
+/* ট্যাব বন্ধ/ব্যাকগ্রাউন্ডে গেলে শেষ অবস্থা সেভ */
+document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState === "hidden") saveNow();
+});
+window.addEventListener("pagehide", saveNow);
+
+
+/* =========================
+   Mobile keyboard: editor উচ্চতা ও বাটন অবস্থান
+   (কিবোর্ড খুললে কার্সার যেন কিবোর্ডের নিচে চাপা না পড়ে)
+========================= */
+const cmWrapper = editor.getWrapperElement();
+const mobileButtons = document.getElementById("mobileButtons");
+
+function layout(){
+
+    const vv = window.visualViewport;
+    const h = vv ? vv.height : window.innerHeight;
+    const top = vv ? vv.offsetTop : 0;
+
+    cmWrapper.style.top = top + "px";
+    editor.setSize("100%", h);
+
+    const off = vv
+        ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop))
+        : 0;
+
+    mobileButtons.style.bottom = (14 + off) + "px";
+
+    editor.refresh();
+
+    if(editor.hasFocus()){
+        editor.scrollIntoView(null, 30);
+    }
+}
+
+if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", layout);
+    window.visualViewport.addEventListener("scroll", layout);
+}
+window.addEventListener("resize", layout);
+window.addEventListener("orientationchange", function(){
+    setTimeout(layout, 250);
+});
+layout();
 
 
 /* =========================
    RUN (Overlay only)
 ========================= */
+
+let resultOpen = false;
 
 function runFullScreen(){
 
@@ -401,11 +503,25 @@ function runFullScreen(){
     const screen =
         document.getElementById("resultScreen");
 
+    saveNow();
+
+    /* ফোনে কিবোর্ড বন্ধ করা */
+    if(document.activeElement && document.activeElement.blur){
+        document.activeElement.blur();
+    }
+
     frame.srcdoc = code;
 
     screen.style.display = "block";
 
-    /* Browser Fullscreen বন্ধ করা হয়েছে */
+    /* ব্যাক বাটনে যেন রেজাল্ট বন্ধ হয় (পেজ থেকে বের হয়ে না যায়) */
+    if(!resultOpen){
+        try{
+            history.pushState({result:1}, "", location.href);
+        }catch(e){}
+    }
+
+    resultOpen = true;
 }
 
 
@@ -413,14 +529,44 @@ function runFullScreen(){
    CLOSE RESULT
 ========================= */
 
-function closeFullScreen(){
+function hideResult(){
 
     document.getElementById(
         "resultScreen"
     ).style.display = "none";
 
-    /* Browser Fullscreen exit বন্ধ করা হয়েছে */
+    /* চলমান স্ক্রিপ্ট/টাইমার/অডিও বন্ধ করা */
+    document.getElementById("resultFrame").srcdoc = "";
+
+    resultOpen = false;
+
+    /* কম্পিউটারে আবার এডিটরে ফোকাস (ফোনে নয়, নইলে কিবোর্ড লাফিয়ে উঠবে) */
+    if(!isTouch){
+        editor.focus();
+    }
 }
+
+function closeFullScreen(){
+
+    if(resultOpen && history.state && history.state.result){
+        /* popstate ইভেন্ট hideResult() চালাবে */
+        history.back();
+    }else{
+        hideResult();
+    }
+}
+
+window.addEventListener("popstate", function(){
+    if(resultOpen) hideResult();
+});
+
+/* Esc চাপলে রেজাল্ট বন্ধ */
+document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && resultOpen){
+        e.preventDefault();
+        closeFullScreen();
+    }
+});
 
 
 /* =========================
@@ -446,7 +592,8 @@ function downloadCode(){
         return;
     }
 
-    fileName = fileName.trim();
+    /* ফাইলনামে নিষিদ্ধ চিহ্ন বাদ */
+    fileName = fileName.replace(/[\\\/:*?"<>|]/g, "").trim();
 
     /*
      * নাম খালি হলে বন্ধ
@@ -492,41 +639,6 @@ function downloadCode(){
 
     },1000);
 }
-
-
-/* =========================
-   MOBILE BACK BUTTON
-========================= */
-
-history.pushState(
-    null,
-    null,
-    location.href
-);
-
-window.addEventListener(
-    "popstate",
-    function(){
-
-        const screen =
-            document.getElementById(
-                "resultScreen"
-            );
-
-        if(screen.style.display === "block"){
-
-            closeFullScreen();
-
-            history.pushState(
-                null,
-                null,
-                location.href
-            );
-
-        }
-
-    }
-);
 
 </script>
 
