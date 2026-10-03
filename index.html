@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,263 +6,202 @@
 
 <title>Live Code Editor</title>
 
-<!-- CodeMirror -->
 <link rel="stylesheet"
 href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.css">
 
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/xml/xml.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/css/css.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/javascript/javascript.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/htmlmixed/htmlmixed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/htmlmixed/htmlmixed.js">
+</script>
 
 <style>
-
-/* =========================
-   WHITE EDITOR
-========================= */
-
-html,
-body{
+html,body{
     margin:0;
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#ffffff;
+    background:#fff;
 }
-
-
-/* =========================
-   CODEMIRROR
-========================= */
 
 .CodeMirror{
     position:fixed;
-
     top:0;
     left:0;
-
     width:100%;
     height:100vh;
 
-    font-family:
-        Consolas,
-        "Courier New",
-        monospace;
-
+    font-family:Consolas,"Courier New",monospace;
     font-size:16px;
-
     line-height:1.6;
 
-    background:#ffffff;
-
-    color:#111111;
-
+    background:#fff;
+    color:#111;
     border:0;
 }
 
-
-/* LINE NUMBER */
-
 .CodeMirror-gutters{
     background:#f7f7f7;
-
-    border-right:1px solid #dddddd;
-
-    color:#999999;
+    border-right:1px solid #ddd;
+    color:#999;
 }
 
 .CodeMirror-linenumber{
-    color:#999999;
-
+    color:#999;
     padding:0 10px 0 8px;
 }
-
-
-/* CURRENT LINE */
 
 .CodeMirror-activeline-background{
     background:#f8f8f8;
 }
 
-
-/* CURSOR */
-
 .CodeMirror-cursor{
-    border-left:2px solid #222222;
+    border-left:2px solid #222;
 }
-
-
-/* SELECTION */
 
 .CodeMirror-selected{
-    background:#dbeafe !important;
+    background:#dbeafe!important;
 }
 
+/* Syntax colors */
+.cm-tag{color:#06c}
+.cm-attribute{color:#a31515}
+.cm-string{color:#008000}
+.cm-property{color:#005cc5}
+.cm-keyword{color:#7b1fa2}
+.cm-variable{color:#111}
+.cm-def{color:#795548}
+.cm-number{color:#d84315}
+.cm-comment{color:#777}
 
 /* =========================
-   SYNTAX COLORS
+   Mobile buttons (iOS style)
 ========================= */
-
-/* HTML TAG */
-
-.cm-tag{
-    color:#0066cc;
-}
-
-/* HTML ATTRIBUTE */
-
-.cm-attribute{
-    color:#a31515;
-}
-
-/* HTML STRING */
-
-.cm-string{
-    color:#008000;
-}
-
-/* CSS PROPERTY */
-
-.cm-property{
-    color:#005cc5;
-}
-
-/* JAVASCRIPT KEYWORD */
-
-.cm-keyword{
-    color:#7b1fa2;
-}
-
-/* JAVASCRIPT VARIABLE */
-
-.cm-variable{
-    color:#111111;
-}
-
-/* FUNCTION */
-
-.cm-def{
-    color:#795548;
-}
-
-/* NUMBER */
-
-.cm-number{
-    color:#d84315;
-}
-
-/* COMMENT */
-
-.cm-comment{
-    color:#777777;
-}
-
-
-/* =========================
-   MOBILE BUTTON
-========================= */
-
-#mobileFullscreen{
-
+#mobileButtons{
     display:none;
-
     position:fixed;
-
-    right:10px;
-    bottom:10px;
-
+    right:14px;
+    bottom:14px;
     z-index:5000;
-
-    border:0;
-
-    border-radius:9px;
-
-    background:#111111;
-
-    color:#ffffff;
-
-    padding:11px 15px;
-
-    font-size:14px;
-
-    font-weight:bold;
-
-    box-shadow:
-        0 3px 12px
-        rgba(0,0,0,.2);
-
+    gap:8px;
+    align-items:center;
 }
 
+.roundBtn{
+    width:34px;
+    height:34px;
+    padding:0;
+
+    border:0.5px solid rgba(0,0,0,.05);
+    border-radius:50%;
+
+    background:rgba(120,120,128,.13);
+    -webkit-backdrop-filter:blur(14px) saturate(180%);
+    backdrop-filter:blur(14px) saturate(180%);
+
+    color:#1c1c1e;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+
+    box-shadow:0 1px 2px rgba(0,0,0,.05);
+
+    transition:transform .16s ease, background .16s ease;
+}
+
+.roundBtn svg{
+    width:16px;
+    height:16px;
+    display:block;
+    pointer-events:none;
+}
+
+.roundBtn:hover{
+    background:rgba(120,120,128,.20);
+}
+
+.roundBtn:active{
+    transform:scale(.9);
+    background:rgba(120,120,128,.26);
+}
 
 /* =========================
-   FULL SCREEN RESULT
+   Result screen
 ========================= */
-
 #resultScreen{
-
     display:none;
 
     position:fixed;
-
     inset:0;
 
     width:100vw;
     height:100vh;
 
-    background:#ffffff;
-
+    background:#fff;
     z-index:99999;
 }
 
-
 #resultFrame{
-
     width:100%;
     height:100%;
-
     border:0;
-
-    background:#ffffff;
+    background:#fff;
 }
 
-
-/* CLOSE */
-
+/* Close button (iOS glass style) */
 #closeBtn{
-
     position:absolute;
+    top:12px;
+    right:12px;
 
-    top:10px;
-    right:10px;
+    width:34px;
+    height:34px;
+    padding:0;
 
-    width:40px;
-    height:40px;
-
-    border:0;
-
+    border:0.5px solid rgba(0,0,0,.06);
     border-radius:50%;
 
-    background:rgba(0,0,0,.75);
+    background:rgba(255,255,255,.78);
+    -webkit-backdrop-filter:blur(16px) saturate(180%);
+    backdrop-filter:blur(16px) saturate(180%);
 
-    color:white;
+    color:#1c1c1e;
 
-    font-size:25px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 
     z-index:100000;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
 
+    box-shadow:0 2px 8px rgba(0,0,0,.14);
+
+    transition:transform .16s ease, background .16s ease;
 }
 
+#closeBtn svg{
+    width:15px;
+    height:15px;
+    display:block;
+    pointer-events:none;
+}
 
-/* =========================
-   MOBILE
-========================= */
+#closeBtn:active{
+    transform:scale(.9);
+    background:rgba(255,255,255,.95);
+}
 
+/* Mobile */
 @media(max-width:600px){
 
-    #mobileFullscreen{
-        display:block;
+    #mobileButtons{
+        display:flex;
     }
 
     .CodeMirror{
@@ -274,225 +212,179 @@ body{
         padding-right:8px;
         padding-left:5px;
     }
-
 }
 
-
-/* =========================
-   COMPUTER
-========================= */
-
+/* Computer */
 @media(min-width:601px){
 
-    #mobileFullscreen{
+    #mobileButtons{
         display:none;
     }
-
 }
-
 </style>
 </head>
 
 <body>
 
-
-<!-- EDITOR -->
-
-<textarea id="code">
-
-<!DOCTYPE html>
-
+<textarea id="code"><!DOCTYPE html>
 <html>
-
 <head>
+    <meta charset="UTF-8">
+    <title>My Page</title>
 
-<style>
+    <style>
+        body{
+            font-family:Arial;
+            text-align:center;
+            padding:40px;
+        }
 
-body{
-    margin:0;
-    min-height:100vh;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-family:Arial;
-
-    background:#f5f5f5;
-}
-
-.box{
-    text-align:center;
-    padding:40px;
-
-    background:white;
-
-    border-radius:15px;
-
-    box-shadow:
-        0 5px 25px
-        rgba(0,0,0,.12);
-}
-
-h1{
-    color:#2196f3;
-}
-
-button{
-    padding:10px 20px;
-    border:0;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-</style>
-
+        h1{
+            color:#0066cc;
+        }
+    </style>
 </head>
 
-
 <body>
-
-<div class="box">
 
     <h1>Hello World!</h1>
+    <p>এখানে HTML, CSS এবং JavaScript একসাথে লিখুন।</p>
 
-    <p>Write your code here.</p>
+    <script>
+        console.log("Hello!");
+    </script>
 
-    <button onclick="hello()">
-        Click Me
+</body>
+</html></textarea>
+
+
+<!-- MOBILE BUTTONS -->
+<div id="mobileButtons">
+
+    <!-- Full Screen -->
+    <button
+        class="roundBtn"
+        onclick="runFullScreen()"
+        title="Full Screen"
+        aria-label="Full Screen">
+
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor"
+             stroke-width="1.7"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+            <path d="M16 3h3a2 2 0 0 1 2 2v3"/>
+            <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+            <path d="M8 21H5a2 2 0 0 1-2-2v-3"/>
+        </svg>
+
+    </button>
+
+    <!-- Download -->
+    <button
+        class="roundBtn"
+        onclick="downloadCode()"
+        title="Download"
+        aria-label="Download">
+
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor"
+             stroke-width="1.7"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+            <path d="M12 4v10"/>
+            <path d="M7.5 10.5 12 15l4.5-4.5"/>
+            <path d="M5 19h14"/>
+        </svg>
+
     </button>
 
 </div>
 
 
-<script>
-
-function hello(){
-
-    alert("JavaScript is working!");
-
-}
-
-<\/script>
-
-</body>
-
-</html>
-
-</textarea>
-
-
-<!-- MOBILE BUTTON -->
-
-<button
-id="mobileFullscreen"
-onclick="runFullScreen()">
-
-⛶ Full Screen
-
-</button>
-
-
 <!-- RESULT -->
-
 <div id="resultScreen">
 
-<button
-id="closeBtn"
-onclick="closeFullScreen()">
+    <button
+        id="closeBtn"
+        onclick="closeFullScreen()"
+        title="Close"
+        aria-label="Close">
 
-×
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round">
+            <path d="M6 6l12 12"/>
+            <path d="M18 6L6 18"/>
+        </svg>
 
-</button>
+    </button>
 
-<iframe
-id="resultFrame">
-</iframe>
+    <iframe id="resultFrame"></iframe>
 
 </div>
 
 
 <script>
 
-/* =========================
-   CODEMIRROR
-========================= */
-
-const editor =
-CodeMirror.fromTextArea(
+const editor = CodeMirror.fromTextArea(
     document.getElementById("code"),
     {
-
         mode:"htmlmixed",
 
         lineNumbers:true,
-
         lineWrapping:false,
 
         tabSize:2,
-
         indentUnit:2,
-
         indentWithTabs:false,
 
         autofocus:true,
-
         viewportMargin:Infinity,
 
         extraKeys:{
 
-            /* SHIFT + ENTER */
-
-            "Shift-Enter":
-            function(){
-
+            /* Computer: Shift + Enter */
+            "Shift-Enter":function(){
                 runFullScreen();
-
             },
 
-            /* TAB */
-
-            "Tab":
-            function(cm){
-
+            /* Tab = 2 spaces */
+            "Tab":function(cm){
                 cm.replaceSelection("  ");
+            },
 
+            /*
+             * Computer: Ctrl + D
+             *
+             * Browser-এর default Ctrl+D
+             * bookmark করার কাজ বন্ধ করে
+             * Download চালাবে।
+             */
+            "Ctrl-D":function(){
+                downloadCode();
             }
 
         }
-
     }
 );
 
 
-/* =========================
-   SAVE
-========================= */
-
-const savedCode =
-localStorage.getItem("liveCode");
-
+/* Auto Save */
+const savedCode = localStorage.getItem("liveCode");
 
 if(savedCode){
-
     editor.setValue(savedCode);
-
 }
 
-
-/* AUTO SAVE */
-
-editor.on(
-    "change",
-    function(){
-
-        localStorage.setItem(
-            "liveCode",
-            editor.getValue()
-        );
-
-    }
-);
+editor.on("change",function(){
+    localStorage.setItem(
+        "liveCode",
+        editor.getValue()
+    );
+});
 
 
 /* =========================
@@ -501,62 +393,125 @@ editor.on(
 
 function runFullScreen(){
 
-    const code =
-        editor.getValue();
+    const code = editor.getValue();
 
     const frame =
-        document.getElementById(
-            "resultFrame"
-        );
+        document.getElementById("resultFrame");
 
     const screen =
-        document.getElementById(
-            "resultScreen"
-        );
+        document.getElementById("resultScreen");
 
+    frame.srcdoc = code;
 
-    frame.srcdoc=code;
+    screen.style.display = "block";
 
-    screen.style.display="block";
-
-
-    /* Browser Fullscreen */
-
+    /*
+     * Browser Fullscreen
+     */
     if(screen.requestFullscreen){
 
-        screen
-        .requestFullscreen()
-        .catch(()=>{});
+        screen.requestFullscreen()
+        .catch(function(){
+            /* Browser fullscreen না দিলেও
+               overlay fullscreen থাকবে */
+        });
 
     }
-
 }
 
 
 /* =========================
-   CLOSE
+   CLOSE RESULT
 ========================= */
 
 function closeFullScreen(){
 
     document.getElementById(
         "resultScreen"
-    ).style.display="none";
-
+    ).style.display = "none";
 
     if(document.fullscreenElement){
 
-        document
-        .exitFullscreen()
-        .catch(()=>{});
+        document.exitFullscreen()
+        .catch(function(){});
 
     }
-
 }
 
 
 /* =========================
-   ESC
+   DOWNLOAD
+========================= */
+
+function downloadCode(){
+
+    const code = editor.getValue();
+
+    /*
+     * নাম চাইবে
+     */
+    let fileName = prompt(
+        "ফাইলের নাম লিখুন:",
+        "index"
+    );
+
+    /*
+     * Cancel করলে কিছু হবে না
+     */
+    if(fileName === null){
+        return;
+    }
+
+    fileName = fileName.trim();
+
+    /*
+     * নাম খালি হলে বন্ধ
+     */
+    if(fileName === ""){
+        alert("একটি ফাইলের নাম দিন।");
+        return;
+    }
+
+    /*
+     * ব্যবহারকারী .html লিখলেও
+     * আবার .html যোগ হবে না
+     */
+    if(!fileName.toLowerCase().endsWith(".html")){
+        fileName += ".html";
+    }
+
+    const blob = new Blob(
+        [code],
+        {
+            type:"text/html;charset=utf-8"
+        }
+    );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+    a.download = fileName;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+    setTimeout(function(){
+
+        URL.revokeObjectURL(url);
+
+    },1000);
+}
+
+
+/* =========================
+   FULLSCREEN CHANGE
 ========================= */
 
 document.addEventListener(
@@ -567,7 +522,7 @@ document.addEventListener(
 
             document.getElementById(
                 "resultScreen"
-            ).style.display="none";
+            ).style.display = "none";
 
         }
 
@@ -576,7 +531,7 @@ document.addEventListener(
 
 
 /* =========================
-   MOBILE BACK
+   MOBILE BACK BUTTON
 ========================= */
 
 history.pushState(
@@ -584,7 +539,6 @@ history.pushState(
     null,
     location.href
 );
-
 
 window.addEventListener(
     "popstate",
@@ -595,7 +549,7 @@ window.addEventListener(
                 "resultScreen"
             );
 
-        if(screen.style.display==="block"){
+        if(screen.style.display === "block"){
 
             closeFullScreen();
 
@@ -614,4 +568,3 @@ window.addEventListener(
 
 </body>
 </html>
-```
