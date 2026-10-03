@@ -1,158 +1,617 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Live Code IDE</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- CodeMirror CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/theme/neo.css">
+<title>Live Code Editor</title>
 
-<!-- CodeMirror JS -->
+<!-- CodeMirror -->
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.css">
+
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/lib/codemirror.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/xml/xml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/css/css.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/javascript/javascript.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/htmlmixed/htmlmixed.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/css/css.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.14/mode/python/python.js"></script>
 
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#f5f5f5;height:100vh;display:flex;flex-direction:column;}
 
-/* Header */
-header{
-    height:50px;
-    display:flex;
-    align-items:center;
-    padding:0 8px;
-    background:#e0e0e0;
-    border-bottom:1px solid #ccc;
-    gap:5px;
-}
-.menu-btns{
-    display:flex;gap:5px;
-}
-button.action-btn{
-    display:flex;align-items:center;gap:3px;
-    padding:3px 6px;
-    border:none;border-radius:4px;background:#4caf50;color:#fff;
-    font-weight:bold;cursor:pointer;user-select:none;font-size:13px;
-}
-button.action-btn span{user-select:none;}
-button.action-btn svg{width:18px;height:18px;fill:#fff;}
+/* =========================
+   WHITE EDITOR
+========================= */
 
-/* Editor */
-#editor{flex:1;max-height:50vh;}
-.CodeMirror{height:100%;font-size:15px;line-height:1.4;}
-.CodeMirror pre{margin:0;}
+html,
+body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#ffffff;
+}
 
-/* Fullscreen overlay */
-#fullscreenOverlay{
+
+/* =========================
+   CODEMIRROR
+========================= */
+
+.CodeMirror{
+    position:fixed;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:100vh;
+
+    font-family:
+        Consolas,
+        "Courier New",
+        monospace;
+
+    font-size:16px;
+
+    line-height:1.6;
+
+    background:#ffffff;
+
+    color:#111111;
+
+    border:0;
+}
+
+
+/* LINE NUMBER */
+
+.CodeMirror-gutters{
+    background:#f7f7f7;
+
+    border-right:1px solid #dddddd;
+
+    color:#999999;
+}
+
+.CodeMirror-linenumber{
+    color:#999999;
+
+    padding:0 10px 0 8px;
+}
+
+
+/* CURRENT LINE */
+
+.CodeMirror-activeline-background{
+    background:#f8f8f8;
+}
+
+
+/* CURSOR */
+
+.CodeMirror-cursor{
+    border-left:2px solid #222222;
+}
+
+
+/* SELECTION */
+
+.CodeMirror-selected{
+    background:#dbeafe !important;
+}
+
+
+/* =========================
+   SYNTAX COLORS
+========================= */
+
+/* HTML TAG */
+
+.cm-tag{
+    color:#0066cc;
+}
+
+/* HTML ATTRIBUTE */
+
+.cm-attribute{
+    color:#a31515;
+}
+
+/* HTML STRING */
+
+.cm-string{
+    color:#008000;
+}
+
+/* CSS PROPERTY */
+
+.cm-property{
+    color:#005cc5;
+}
+
+/* JAVASCRIPT KEYWORD */
+
+.cm-keyword{
+    color:#7b1fa2;
+}
+
+/* JAVASCRIPT VARIABLE */
+
+.cm-variable{
+    color:#111111;
+}
+
+/* FUNCTION */
+
+.cm-def{
+    color:#795548;
+}
+
+/* NUMBER */
+
+.cm-number{
+    color:#d84315;
+}
+
+/* COMMENT */
+
+.cm-comment{
+    color:#777777;
+}
+
+
+/* =========================
+   MOBILE BUTTON
+========================= */
+
+#mobileFullscreen{
+
     display:none;
-    position:fixed;top:0;left:0;width:100%;height:100%;
-    background:#fff;z-index:9999;
+
+    position:fixed;
+
+    right:10px;
+    bottom:10px;
+
+    z-index:5000;
+
+    border:0;
+
+    border-radius:9px;
+
+    background:#111111;
+
+    color:#ffffff;
+
+    padding:11px 15px;
+
+    font-size:14px;
+
+    font-weight:bold;
+
+    box-shadow:
+        0 3px 12px
+        rgba(0,0,0,.2);
+
 }
-#fullscreenOverlay iframe{width:100%;height:100%;border:none;}
+
+
+/* =========================
+   FULL SCREEN RESULT
+========================= */
+
+#resultScreen{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    width:100vw;
+    height:100vh;
+
+    background:#ffffff;
+
+    z-index:99999;
+}
+
+
+#resultFrame{
+
+    width:100%;
+    height:100%;
+
+    border:0;
+
+    background:#ffffff;
+}
+
+
+/* CLOSE */
+
+#closeBtn{
+
+    position:absolute;
+
+    top:10px;
+    right:10px;
+
+    width:40px;
+    height:40px;
+
+    border:0;
+
+    border-radius:50%;
+
+    background:rgba(0,0,0,.75);
+
+    color:white;
+
+    font-size:25px;
+
+    z-index:100000;
+
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:600px){
+
+    #mobileFullscreen{
+        display:block;
+    }
+
+    .CodeMirror{
+        font-size:16px;
+    }
+
+    .CodeMirror-linenumber{
+        padding-right:8px;
+        padding-left:5px;
+    }
+
+}
+
+
+/* =========================
+   COMPUTER
+========================= */
+
+@media(min-width:601px){
+
+    #mobileFullscreen{
+        display:none;
+    }
+
+}
+
 </style>
 </head>
+
 <body>
 
-<header>
-    <div class="menu-btns">
-        <button class="action-btn" onclick="openFullScreen()">
-            <svg viewBox="0 0 24 24"><path d="M4 4h6V2H2v8h2V4m14 0v6h2V2h-8v2h6m0 14h-6v2h8v-8h-2v6M4 14H2v8h8v-2H4v-6z"/></svg>
-            <span>Full Screen</span>
-        </button>
-        <button class="action-btn" onclick="downloadCode()">
-            <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5m7-14v8l3-3 1.41 1.41L12 18l-4.41-4.59L9 11l3 3V4h2z"/></svg>
-            <span>Download</span>
-        </button>
-        <button class="action-btn" onclick="toggleTheme()">
-            <svg viewBox="0 0 24 24"><path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 12,3Z"/></svg>
-            <span>Theme</span>
-        </button>
-    </div>
-</header>
 
-<textarea id="code"></textarea>
-<div id="fullscreenOverlay"><iframe id="fullIframe"></iframe></div>
+<!-- EDITOR -->
+
+<textarea id="code">
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<style>
+
+body{
+    margin:0;
+    min-height:100vh;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-family:Arial;
+
+    background:#f5f5f5;
+}
+
+.box{
+    text-align:center;
+    padding:40px;
+
+    background:white;
+
+    border-radius:15px;
+
+    box-shadow:
+        0 5px 25px
+        rgba(0,0,0,.12);
+}
+
+h1{
+    color:#2196f3;
+}
+
+button{
+    padding:10px 20px;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="box">
+
+    <h1>Hello World!</h1>
+
+    <p>Write your code here.</p>
+
+    <button onclick="hello()">
+        Click Me
+    </button>
+
+</div>
+
 
 <script>
-// Theme
-if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
-function toggleTheme(){
-    document.body.classList.toggle("dark");
-    localStorage.setItem("theme", document.body.classList.contains("dark")?"dark":"light");
+
+function hello(){
+
+    alert("JavaScript is working!");
+
 }
 
-// CodeMirror setup
-const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-    mode: "htmlmixed",
-    lineNumbers: true,
-    theme: "neo",
-    tabSize:2,
-    viewportMargin: Infinity,
-    lineWrapping: true,
-    extraKeys: {
-        "Enter": "newlineAndIndent",
-        "Backspace": "delCharBefore"
+<\/script>
+
+</body>
+
+</html>
+
+</textarea>
+
+
+<!-- MOBILE BUTTON -->
+
+<button
+id="mobileFullscreen"
+onclick="runFullScreen()">
+
+⛶ Full Screen
+
+</button>
+
+
+<!-- RESULT -->
+
+<div id="resultScreen">
+
+<button
+id="closeBtn"
+onclick="closeFullScreen()">
+
+×
+
+</button>
+
+<iframe
+id="resultFrame">
+</iframe>
+
+</div>
+
+
+<script>
+
+/* =========================
+   CODEMIRROR
+========================= */
+
+const editor =
+CodeMirror.fromTextArea(
+    document.getElementById("code"),
+    {
+
+        mode:"htmlmixed",
+
+        lineNumbers:true,
+
+        lineWrapping:false,
+
+        tabSize:2,
+
+        indentUnit:2,
+
+        indentWithTabs:false,
+
+        autofocus:true,
+
+        viewportMargin:Infinity,
+
+        extraKeys:{
+
+            /* SHIFT + ENTER */
+
+            "Shift-Enter":
+            function(){
+
+                runFullScreen();
+
+            },
+
+            /* TAB */
+
+            "Tab":
+            function(cm){
+
+                cm.replaceSelection("  ");
+
+            }
+
+        }
+
     }
-});
+);
 
-// Load saved code
-editor.setValue(localStorage.getItem("savedCode")||"");
 
-// Auto-save
-editor.on("change", ()=>{
-    localStorage.setItem("savedCode", editor.getValue());
-});
+/* =========================
+   SAVE
+========================= */
 
-// Download
-function downloadCode(){
-    const code = editor.getValue();
-    const blob = new Blob([code], {type:"text/plain"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    const lang = detectLanguage(code);
-    let ext = "txt";
-    if(lang==="html") ext="html";
-    if(lang==="css") ext="css";
-    if(lang==="js") ext="js";
-    if(lang==="python") ext="py";
-    a.download = "code."+ext;
-    a.click();
+const savedCode =
+localStorage.getItem("liveCode");
+
+
+if(savedCode){
+
+    editor.setValue(savedCode);
+
 }
 
-// Language detect
-function detectLanguage(code){
-    code = code.trim();
-    if(code.includes("<") && code.includes(">")) return "html";
-    if(code.includes("import") || code.includes("def") || code.includes("print")) return "python";
-    if(code.includes("{") && code.includes("}") && code.includes(";")) return "js";
-    if(code.includes("{") && code.includes("}") && !code.includes(";")) return "css";
-    return "txt";
-}
 
-// Full Screen
-function openFullScreen(){
-    const overlay = document.getElementById("fullscreenOverlay");
-    const iframe = document.getElementById("fullIframe");
-    iframe.srcdoc = editor.getValue();
-    overlay.style.display = "block";
-}
+/* AUTO SAVE */
 
-// Close full screen on back button (mobile)
-window.addEventListener('popstate', function(){
-    const overlay = document.getElementById("fullscreenOverlay");
-    if(overlay.style.display==="block"){
-        overlay.style.display="none";
-        history.pushState(null,null,location.href);
+editor.on(
+    "change",
+    function(){
+
+        localStorage.setItem(
+            "liveCode",
+            editor.getValue()
+        );
+
     }
-});
+);
 
-// Push state
-history.pushState(null,null,location.href);
+
+/* =========================
+   RUN FULL SCREEN
+========================= */
+
+function runFullScreen(){
+
+    const code =
+        editor.getValue();
+
+    const frame =
+        document.getElementById(
+            "resultFrame"
+        );
+
+    const screen =
+        document.getElementById(
+            "resultScreen"
+        );
+
+
+    frame.srcdoc=code;
+
+    screen.style.display="block";
+
+
+    /* Browser Fullscreen */
+
+    if(screen.requestFullscreen){
+
+        screen
+        .requestFullscreen()
+        .catch(()=>{});
+
+    }
+
+}
+
+
+/* =========================
+   CLOSE
+========================= */
+
+function closeFullScreen(){
+
+    document.getElementById(
+        "resultScreen"
+    ).style.display="none";
+
+
+    if(document.fullscreenElement){
+
+        document
+        .exitFullscreen()
+        .catch(()=>{});
+
+    }
+
+}
+
+
+/* =========================
+   ESC
+========================= */
+
+document.addEventListener(
+    "fullscreenchange",
+    function(){
+
+        if(!document.fullscreenElement){
+
+            document.getElementById(
+                "resultScreen"
+            ).style.display="none";
+
+        }
+
+    }
+);
+
+
+/* =========================
+   MOBILE BACK
+========================= */
+
+history.pushState(
+    null,
+    null,
+    location.href
+);
+
+
+window.addEventListener(
+    "popstate",
+    function(){
+
+        const screen =
+            document.getElementById(
+                "resultScreen"
+            );
+
+        if(screen.style.display==="block"){
+
+            closeFullScreen();
+
+            history.pushState(
+                null,
+                null,
+                location.href
+            );
+
+        }
+
+    }
+);
+
 </script>
 
 </body>
 </html>
+```
